@@ -22,10 +22,10 @@ psql -U postgres -d protech_db -f database.sql
 # 3. Edit config.php - set your PostgreSQL password:
 #    define('DB_PASS', 'your_postgres_password');
 
-# 4. Start server
-php -S localhost:8000
+# 4. Start server (Windows - use 127.0.0.1 instead of localhost)
+php -S 127.0.0.1:8000 router.php
 
-# 5. Open http://localhost:8000
+# 5. Open http://127.0.0.1:8000 in your browser
 ```
 
 ### Test Accounts (password: `password123`)
