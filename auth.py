@@ -99,7 +99,12 @@ def login_user(email, password):
         
         if user:
             # Verify password
-            if bcrypt.checkpw(password.encode('utf-8'), user['password'].encode('utf-8')):
+            # Convert PHP's $2y$ to Python's $2b$ format if needed
+            stored_hash = user['password']
+            if stored_hash.startswith('$2y$'):
+                stored_hash = '$2b$' + stored_hash[4:]
+            
+            if bcrypt.checkpw(password.encode('utf-8'), stored_hash.encode('utf-8')):
                 # Set session variables
                 session['user_id'] = user['id']
                 session['user_name'] = user['name']
