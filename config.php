@@ -13,7 +13,7 @@ session_start();
 // =====================================================
 
 // Database connection settings
-define('DB_HOST', 'localhost');      // Usually 'localhost' or '127.0.0.1'
+define('DB_HOST', '127.0.0.1');      // Use 127.0.0.1 instead of localhost for IPv4
 define('DB_PORT', '5432');           // Default PostgreSQL port is 5432
 define('DB_NAME', 'protech_db');     // Database name
 define('DB_USER', 'postgres');       // Your PostgreSQL username (default is 'postgres')
