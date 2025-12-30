@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My Bookings - ProTech</title>
+</head>
+<body>
+    <h1>My Bookings</h1>
+    {% for booking in bookings %}
+        <div>
+            <h3>{{ booking.title }}</h3>
+            <p>Status: {{ booking.status }}</p>
+            {% if user_type == 'worker' and booking.status == 'pending' %}
+                <form method="POST" action="{{ url_for('update_booking', booking_id=booking.id) }}" style="display:inline;">
+                    <button type="submit" name="action" value="accept">Accept</button>
+                    <button type="submit" name="action" value="decline">Decline</button>
+                </form>
+            {% endif %}
+        </div>
+    {% endfor %}
+</body>
+</html>

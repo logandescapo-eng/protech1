@@ -4,38 +4,41 @@ A marketplace web application connecting clients with professional service worke
 
 ## 📋 Quick Start
 
-See **[SETUP_GUIDE.md](SETUP_GUIDE.md)** for detailed installation instructions.
-
 ### Prerequisites
-- PHP 8.0+ with `pdo_pgsql` extension
+- Python 3.8+ 
 - PostgreSQL 13+
+- pip (Python package manager)
 
-### Quick Setup (after installing PHP and PostgreSQL)
+### Installation
 
-```bash
-# 1. Create database
-psql -U postgres -c "CREATE DATABASE protech_db;"
+1. **Install Python dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-# 2. Import schema
-psql -U postgres -d protech_db -f database.sql
+2. **Configure database in `config.py`:**
+   ```python
+   DB_PASS = 'your_postgresql_password'  # Update with your PostgreSQL password
+   ```
 
-# 3. Edit config.php - set your PostgreSQL password:
-#    define('DB_PASS', 'your_postgres_password');
+3. **Run the application:**
+   ```bash
+   python app.py
+   ```
 
-# 4. Start server
-php -S localhost:8000
+4. **Access the application:**
+   Open your browser to: http://127.0.0.1:5000
 
-# 5. Open http://localhost:8000
-```
+## 🔑 Test Login Credentials
 
-### Test Accounts (password: `password123`)
-| Email | Type |
-|-------|------|
-| john@example.com | Client |
-| mike@example.com | Plumber |
-| sarah@example.com | Electrician |
+All test accounts use password: `password123`
 
----
+| Email | Password | Type |
+|-------|----------|------|
+| john@example.com | password123 | Client |
+| mike@example.com | password123 | Worker (Plumber) |
+| sarah@example.com | password123 | Worker (Electrician) |
+| david@example.com | password123 | Worker (Cleaner) |
 
 ## ✨ Features
 
@@ -53,44 +56,33 @@ php -S localhost:8000
 - 💰 Track earnings and completed jobs
 - ⭐ Build reputation through reviews
 
----
-
 ## 🗂️ Project Structure
 
 ```
 protech/
-├── index.html              # Landing page
-├── auth.html               # Login/Registration
-├── config.php              # Database configuration ← EDIT THIS
-├── database.sql            # PostgreSQL schema
-├── SETUP_GUIDE.md          # Installation guide
-│
-├── Core Files:
-│   ├── auth_functions.php  # Authentication logic
-│   └── db_functions.php    # Database operations
-│
-├── Client Pages:
-│   ├── user.php            # Client dashboard
-│   ├── browse_workers.php  # Find professionals
-│   ├── book_worker.php     # Book a service
-│   ├── my_bookings.php     # View bookings
-│   └── review.php          # Leave reviews
-│
-├── Worker Pages:
-│   ├── worker.php          # Worker dashboard
-│   └── job_requests.php    # Manage requests
-│
-└── Handlers:
-    ├── login_handler.php
-    ├── user_signup_handler.php
-    ├── worker_signup_handler.php
-    ├── handle_booking.php
-    └── logout.php
+├── app.py              # Main Flask application
+├── config.py           # Database configuration
+├── auth.py             # Authentication functions
+├── db_functions.py     # Database operations
+├── db_connection.py    # Database connection helper
+├── requirements.txt    # Python dependencies
+├── database.sql        # PostgreSQL schema
+└── templates/          # HTML templates (Jinja2)
+    ├── base.html
+    ├── auth.html
+    ├── index.html
+    ├── user_dashboard.html
+    └── worker_dashboard.html
 ```
 
----
+## 🗄️ Database
 
-## 🗄️ Database Schema (PostgreSQL)
+### Important: Database Safety
+- The database (`protech_db`) remains unchanged
+- All existing data is preserved
+- Only the application code changed from PHP to Python
+
+### Database Schema
 
 | Table | Description |
 |-------|-------------|
@@ -103,30 +95,17 @@ protech/
 | `favorites` | Saved workers |
 | `messages` | Chat messages |
 
----
+## 🔧 Configuration
 
-## 🔧 Configuration Details
+Edit `config.py` to update database settings:
 
-### config.php Settings
-
-```php
-define('DB_HOST', 'localhost');   // PostgreSQL server
-define('DB_PORT', '5432');        // Default PostgreSQL port
-define('DB_NAME', 'protech_db');  // Database name
-define('DB_USER', 'postgres');    // PostgreSQL username
-define('DB_PASS', '');            // ← YOUR PASSWORD HERE
+```python
+DB_HOST = '127.0.0.1'
+DB_PORT = '5432'
+DB_NAME = 'protech_db'
+DB_USER = 'postgres'
+DB_PASS = 'your_password'  # ← Update this
 ```
-
-### Required PHP Extensions
-
-Make sure these are enabled in `php.ini`:
-```ini
-extension=pdo_pgsql
-extension=pgsql
-extension=mbstring
-```
-
----
 
 ## 📱 User Flows
 
@@ -139,23 +118,21 @@ extension=mbstring
 6. **Review** → Rate and review the worker
 
 ### Worker Journey
-1. **Register** → Add skills, experience, hourly rate
-2. **Receive** → Get notified of new requests
-3. **Accept/Decline** → Review job details
-4. **Complete** → Mark job as done
-5. **Earn** → Get paid and build reputation
+1. **Register** → Creates worker profile with skills/experience
+2. **Receive** → Gets notified of new job requests
+3. **Review** → Accept or decline bookings
+4. **Complete** → Mark jobs as completed
+5. **Build** → Earn ratings and reviews
 
----
+## 🛠️ Technology Stack
 
-## 🔒 Security Notes
+- **Backend:** Python Flask
+- **Database:** PostgreSQL
+- **Frontend:** HTML, CSS, JavaScript
+- **Templating:** Jinja2
 
-- Passwords hashed with bcrypt (`password_hash`)
-- Prepared statements prevent SQL injection
-- Input sanitization on all user data
-- Session-based authentication
+## 📝 Notes
 
----
-
-## 📄 License
-
-Educational/demonstration purposes.
+- Ensure PostgreSQL is running before starting the application
+- Database connection errors will be displayed in the terminal
+- All passwords are hashed using bcrypt

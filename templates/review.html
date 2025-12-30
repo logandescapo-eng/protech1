@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Leave Review - ProTech</title>
+</head>
+<body>
+    <h1>Leave Review for {{ booking.title }}</h1>
+    <form method="POST">
+        <label>Rating (1-5):</label>
+        <input type="number" name="rating" min="1" max="5" required><br>
+        <label>Comment:</label>
+        <textarea name="comment"></textarea><br>
+        <button type="submit">Submit Review</button>
+    </form>
+</body>
+</html>

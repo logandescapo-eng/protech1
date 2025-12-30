@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProTech - User Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f9fafb; }
+        .header { background: white; padding: 1rem 2rem; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; }
+        .container { max-width: 1200px; margin: 2rem auto; padding: 0 2rem; }
+        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+        .stat-card { background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .btn { padding: 0.5rem 1rem; background: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer; text-decoration: none; display: inline-block; }
+        .btn:hover { background: #1d4ed8; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>ProTech - User Dashboard</h1>
+        <div>
+            <span>Hello, {{ user_name }}!</span>
+            <a href="{{ url_for('logout') }}" class="btn">Logout</a>
+        </div>
+    </div>
+    <div class="container">
+        <h2>Statistics</h2>
+        <div class="stats">
+            <div class="stat-card">
+                <h3>Active Bookings</h3>
+                <p>{{ stats.active_bookings }}</p>
+            </div>
+            <div class="stat-card">
+                <h3>Completed Services</h3>
+                <p>{{ stats.completed_services }}</p>
+            </div>
+            <div class="stat-card">
+                <h3>Total Spent</h3>
+                <p>${{ "%.2f"|format(stats.total_spent) }}</p>
+            </div>
+        </div>
+        <h2>Upcoming Bookings</h2>
+        {% if upcoming_bookings %}
+            <ul>
+            {% for booking in upcoming_bookings %}
+                <li>{{ booking.title }} - {{ booking.status }}</li>
+            {% endfor %}
+            </ul>
+        {% else %}
+            <p>No upcoming bookings</p>
+        {% endif %}
+        <p><a href="{{ url_for('browse_workers') }}" class="btn">Browse Workers</a></p>
+    </div>
+</body>
+</html>
