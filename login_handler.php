@@ -17,9 +17,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($result['success']) {
         // Redirect based on user type
         if ($result['user_type'] === 'worker') {
-            header("Location: worker.html");
+            header("Location: worker.php");
         } else {
-            header("Location: user.html");
+            header("Location: user.php");
         }
         exit();
     } else {
