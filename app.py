@@ -373,7 +373,9 @@ def internal_error(error):
 # ==================== RUN APPLICATION ====================
 
 if __name__ == '__main__':
-    # In Docker, bind to 0.0.0.0 to accept external connections
-    # Check if running in Docker by checking for DB_HOST=db
-    host = '0.0.0.0' if os.getenv('DB_HOST') == 'db' else '127.0.0.1'
-    app.run(host=host, port=5000, debug=DEBUG)
+    # Bind to 0.0.0.0 for cloud hosting, 127.0.0.1 for local dev
+    # Cloud platforms set PORT env var, so use that or default to 5000
+    port = int(os.getenv('PORT', 5000))
+    # Always bind to 0.0.0.0 for cloud compatibility
+    host = '0.0.0.0'
+    app.run(host=host, port=port, debug=DEBUG)

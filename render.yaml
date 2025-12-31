@@ -1,0 +1,34 @@
+services:
+  - type: web
+    name: protech-web
+    env: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    envVars:
+      - key: DB_HOST
+        fromDatabase:
+          name: protech-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: protech-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: protech-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: protech-db
+          property: user
+      - key: DB_PASS
+        fromDatabase:
+          name: protech-db
+          property: password
+    healthCheckPath: /
+
+databases:
+  - name: protech-db
+    databaseName: protech_db
+    user: postgres
+    plan: free

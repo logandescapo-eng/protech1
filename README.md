@@ -35,30 +35,18 @@ A marketplace web application connecting clients with professional service worke
 
 ---
 
-## 🐳 Docker Deployment (For Sharing with Others)
+## 🌐 Internet Hosting (Public Access)
 
-To host the application so others can access it, use Docker:
+To host so **anyone on the internet** can access it:
 
-**⚠️ Important:** Docker containers **must be running** for the link to work. If Docker is stopped, the link will not be accessible.
+**Quickest Solution:** Use **Railway.app** (recommended)
+1. Push code to GitHub
+2. Go to https://railway.app → Sign up → New Project → Deploy from GitHub
+3. Railway auto-detects Docker and deploys
+4. Get permanent public URL like: `https://your-app.railway.app`
+5. **Done!** Share link - works 24/7
 
-1. **Install Docker Desktop** (if not already installed)
-
-2. **Build and start containers:**
-   ```bash
-   docker-compose up --build
-   ```
-
-3. **Access locally:**
-   - **http://127.0.0.1:5000** (from your computer)
-
-4. **Share with others on your network:**
-   - Find your IP address: `ipconfig` (Windows) or `ifconfig` (Mac/Linux)
-   - Share: `http://YOUR_IP_ADDRESS:5000`
-   - Example: `http://192.168.43.186:5000`
-
-See **[DOCKER_SETUP.md](DOCKER_SETUP.md)** for detailed Docker instructions.
-
-**Note:** The application is only accessible when Docker containers are running. Stop Docker = link stops working.
+See **[HOSTING_SOLUTIONS.md](HOSTING_SOLUTIONS.md)** for all hosting options (Railway, Render, Fly.io, ngrok, etc.)
 
 ## 🔑 Test Login Credentials
 

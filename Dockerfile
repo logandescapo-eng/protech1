@@ -30,5 +30,5 @@ EXPOSE 5000
 ENV FLASK_APP=app.py
 ENV PYTHONUNBUFFERED=1
 
-# Run the application
-CMD ["python", "app.py"]
+# Run the application (bind to 0.0.0.0 for cloud hosting)
+CMD ["python", "-c", "import os; os.environ['DB_HOST'] = os.getenv('DB_HOST', 'db'); exec(open('app.py').read())"] || python app.py
