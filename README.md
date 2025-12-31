@@ -2,7 +2,8 @@
 
 A marketplace web application connecting clients with professional service workers (plumbers, electricians, cleaners, carpenters, etc.).
 
-![ProTech Homepage](screenshot.png)
+![ProTech Homepage](![Uploading Capture5.PNG…]()
+)
 
 ## 📋 Quick Start
 
