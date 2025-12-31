@@ -7,6 +7,7 @@ The database itself will NOT be changed - we're just connecting differently.
 import os
 
 # Database connection settings (same as PHP config.php)
+# In Docker, these come from environment variables in docker-compose.yml
 DB_HOST = os.getenv('DB_HOST', '127.0.0.1')
 DB_PORT = os.getenv('DB_PORT', '5432')
 DB_NAME = os.getenv('DB_NAME', 'protech_db')

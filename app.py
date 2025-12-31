@@ -3,6 +3,7 @@ ProTech Flask Application
 Main application file with all routes
 """
 
+import os
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 from config import SECRET_KEY, DEBUG
 from auth import (
@@ -372,4 +373,7 @@ def internal_error(error):
 # ==================== RUN APPLICATION ====================
 
 if __name__ == '__main__':
-    app.run(host='127.0.0.1', port=5000, debug=DEBUG)
+    # In Docker, bind to 0.0.0.0 to accept external connections
+    # Check if running in Docker by checking for DB_HOST=db
+    host = '0.0.0.0' if os.getenv('DB_HOST') == 'db' else '127.0.0.1'
+    app.run(host=host, port=5000, debug=DEBUG)
