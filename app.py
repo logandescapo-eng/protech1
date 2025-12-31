@@ -140,7 +140,7 @@ def user_dashboard():
     # Get initials for avatar
     initials = get_initials(user_name)
     
-    return render_template('user_dashboard.html',
+    return render_template('user.html',
                          user_name=user_name,
                          stats=stats,
                          upcoming_bookings=upcoming_bookings,
@@ -180,7 +180,7 @@ def worker_dashboard():
     # Get initials for avatar
     initials = get_initials(user_name)
     
-    return render_template('worker_dashboard.html',
+    return render_template('worker.html',
                          user_name=user_name,
                          worker=worker,
                          stats=stats,
