@@ -2,6 +2,8 @@
 
 A marketplace web application connecting clients with professional service workers (plumbers, electricians, cleaners, carpenters, etc.).
 
+![ProTech Homepage](screenshot.png)
+
 ## 📋 Quick Start
 
 ### Prerequisites
@@ -27,7 +29,34 @@ A marketplace web application connecting clients with professional service worke
    ```
 
 4. **Access the application:**
-   Open your browser to: http://127.0.0.1:5000
+   Open your browser to: **http://127.0.0.1:5000**
+
+---
+
+## 🐳 Docker Deployment (For Sharing with Others)
+
+To host the application so others can access it, use Docker:
+
+**⚠️ Important:** Docker containers **must be running** for the link to work. If Docker is stopped, the link will not be accessible.
+
+1. **Install Docker Desktop** (if not already installed)
+
+2. **Build and start containers:**
+   ```bash
+   docker-compose up --build
+   ```
+
+3. **Access locally:**
+   - **http://127.0.0.1:5000** (from your computer)
+
+4. **Share with others on your network:**
+   - Find your IP address: `ipconfig` (Windows) or `ifconfig` (Mac/Linux)
+   - Share: `http://YOUR_IP_ADDRESS:5000`
+   - Example: `http://192.168.43.186:5000`
+
+See **[DOCKER_SETUP.md](DOCKER_SETUP.md)** for detailed Docker instructions.
+
+**Note:** The application is only accessible when Docker containers are running. Stop Docker = link stops working.
 
 ## 🔑 Test Login Credentials
 
