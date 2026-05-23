@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Escrow Payment - ProTech</title>
+    {% include 'partials/app_page_styles.html' %}
+</head>
+<body>
+    <div class="wrap">
+        <div class="nav">
+            <a href="{{ url_for('my_bookings') }}">← Bookings</a>
+            <a href="{{ url_for('wallet_page') }}">Wallet</a>
+        </div>
+
+        <h1>Secure escrow payment</h1>
+        <p class="sub">Hold funds safely until the job is done</p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class="flash {{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="card">
+            <h3>{{ booking.title }}</h3>
+            <p class="meta">Professional: {{ booking.worker_name }} · ${{ "%.2f"|format(booking.price) }}</p>
+            <p class="meta">Payment status: <strong>{{ booking.payment_status|replace('_', ' ') }}</strong></p>
+        </div>
+
+        {% if escrow and escrow.status == 'held' %}
+        <div class="flash success">
+            ${{ "%.2f"|format(escrow.amount) }} is already held in escrow for this booking.
+        </div>
+        <a href="{{ url_for('my_bookings') }}" class="btn btn-primary">Back to bookings</a>
+
+        {% elif booking.payment_status == 'pending' %}
+        <div class="card">
+            <p>Your wallet balance: <strong>${{ "%.2f"|format(wallet.available_balance) }}</strong></p>
+            <p style="margin:1rem 0;">Amount to place in escrow: <strong>${{ "%.2f"|format(booking.price) }}</strong></p>
+            <p class="meta">On completion, the worker receives {{ 100 - platform_fee_percent|int }}% ({{ platform_fee_percent }}% platform fee). On cancellation, you get a full refund from escrow.</p>
+            {% if wallet.available_balance >= booking.price %}
+            <form method="POST">
+                <button type="submit" class="btn btn-primary">Place ${{ "%.2f"|format(booking.price) }} in escrow</button>
+            </form>
+            {% else %}
+            <p class="flash error">Insufficient balance. Add funds to your wallet first.</p>
+            <a href="{{ url_for('wallet_page') }}" class="btn btn-primary">Go to wallet</a>
+            {% endif %}
+        </div>
+        {% else %}
+        <div class="card">
+            <p>Payment for this booking is not pending escrow funding.</p>
+            <a href="{{ url_for('my_bookings') }}" class="btn btn-outline">Back to bookings</a>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wallet & Escrow - ProTech</title>
+    {% include 'partials/app_page_styles.html' %}
+    <style>
+        .balance-box { background: linear-gradient(135deg, #2563eb, #4f46e5); color: #fff; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; }
+        .balance-box h2 { font-size: 2rem; margin: 0.25rem 0; }
+        .vault-box { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 1rem; margin-bottom: 1rem; }
+        .info-list { font-size: 0.9rem; color: #4b5563; margin: 1rem 0; padding-left: 1.25rem; }
+        .tx-amount.positive { color: #059669; }
+        .tx-amount.negative { color: #dc2626; }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        {% include 'partials/subpage_nav.html' %}
+        <h1>Wallet & secure escrow</h1>
+        <p class="sub">Your balance and payment history on ProTech</p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class="flash {{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="balance-box">
+            <p style="opacity:0.9;margin:0;">Available balance</p>
+            <h2>${{ "%.2f"|format(wallet.available_balance) }}</h2>
+            <p style="opacity:0.85;font-size:0.875rem;margin-top:0.5rem;">Use this to fund escrow when booking professionals</p>
+        </div>
+
+        <div class="vault-box">
+            <strong>Platform escrow vault</strong> (funds held securely until jobs finish)
+            <p class="meta" style="margin-top:0.5rem;">
+                Currently holding: <strong>${{ "%.2f"|format(vault.total_held) }}</strong> ·
+                Total released to workers: <strong>${{ "%.2f"|format(vault.total_released) }}</strong>
+            </p>
+        </div>
+
+        <div class="card">
+            <h3>How escrow works</h3>
+            <ul class="info-list">
+                <li>You add funds to your wallet (demo deposit simulates a bank transfer).</li>
+                <li>When you book, you move the job amount into <strong>escrow</strong> — money leaves your wallet but stays on the platform.</li>
+                <li>Funds are <strong>not</strong> sent to the worker until they mark the job complete.</li>
+                <li>If the booking is cancelled, escrow is <strong>refunded</strong> to your wallet.</li>
+                <li>Platform fee: {{ platform_fee_percent }}% on release (deducted from the job amount).</li>
+            </ul>
+            <p class="meta">Production: connect Stripe or your bank via a licensed payment provider. This build uses an internal ledger for demonstration.</p>
+        </div>
+
+        {% if layout_user_type == 'user' %}
+        <form method="POST" class="card">
+            <h3 style="margin-bottom:0.75rem;">Add funds (demo)</h3>
+            <p class="meta" style="margin-bottom:1rem;">Simulates a secure deposit from your bank. Max $1,000 per transaction.</p>
+            <div class="form-group">
+                <label for="amount">Amount ($)</label>
+                <input type="number" id="amount" name="amount" min="1" max="1000" step="0.01" placeholder="100.00" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Deposit to wallet</button>
+        </form>
+        {% else %}
+        <div class="card">
+            <p class="meta">Workers receive payouts to this wallet when clients' escrow is released after job completion.</p>
+        </div>
+        {% endif %}
+
+        <div class="card">
+            <h3 style="margin-bottom:0.75rem;">Transaction history</h3>
+            {% if transactions %}
+                {% for tx in transactions %}
+                <div class="list-item">
+                    <h3>{{ tx.transaction_type|replace('_', ' ')|title }}</h3>
+                    <p class="meta">{{ tx.description or '' }}{% if tx.booking_title %} · {{ tx.booking_title }}{% endif %}</p>
+                    <p class="meta">{{ tx.created_at.strftime('%b %d, %Y %I:%M %p') if tx.created_at else '' }}</p>
+                    <p>
+                        <span class="tx-amount {% if tx.amount >= 0 %}positive{% else %}negative{% endif %}">
+                            {% if tx.amount >= 0 %}+{% endif %}${{ "%.2f"|format(tx.amount) }}
+                        </span>
+                        · Balance after: ${{ "%.2f"|format(tx.balance_after) }}
+                    </p>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p class="meta">No transactions yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

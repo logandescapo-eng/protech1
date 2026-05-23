@@ -31,6 +31,10 @@
         .btn-danger { background: #ef4444; color: #fff; }
         .btn-outline { background: #fff; color: #374151; border: 1px solid #d1d5db; }
         .empty { text-align: center; padding: 3rem 1rem; color: #6b7280; }
+        .pay-status { display: inline-block; margin-left: 0.5rem; padding: 0.2rem 0.5rem; border-radius: 6px; font-size: 0.7rem; background: #e0e7ff; color: #3730a3; }
+        .pay-status.escrow_held { background: #fef3c7; color: #92400e; }
+        .pay-status.released { background: #d1fae5; color: #065f46; }
+        .wallet-bar { background: #eff6ff; border: 1px solid #bfdbfe; padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 1rem; font-size: 0.9rem; }
     </style>
 </head>
 <body>
@@ -41,7 +45,20 @@
             {% else %}
             <a href="{{ url_for('user_dashboard') }}">← Back to Dashboard</a>
             {% endif %}
+            <a href="{{ url_for('wallet_page') }}">Wallet</a>
         </div>
+
+        {% if user_type != 'worker' and wallet %}
+        <div class="wallet-bar">
+            Wallet balance: <strong>${{ "%.2f"|format(wallet.available_balance) }}</strong> ·
+            <a href="{{ url_for('wallet_page') }}">Add funds / history</a>
+        </div>
+        {% elif user_type == 'worker' and wallet %}
+        <div class="wallet-bar">
+            Wallet (payouts): <strong>${{ "%.2f"|format(wallet.available_balance) }}</strong> ·
+            <a href="{{ url_for('wallet_page') }}">View transactions</a>
+        </div>
+        {% endif %}
 
         <h1>My Bookings</h1>
         <p class="sub">{% if user_type == 'worker' %}Manage job requests and your schedule{% else %}Track and manage your service bookings{% endif %}</p>
@@ -71,8 +88,15 @@
                 </p>
                 {% if booking.description %}<p class="meta">{{ booking.description }}</p>{% endif %}
                 <span class="status {{ booking.status }}">{{ booking.status|replace('_', ' ') }}</span>
+                <span class="pay-status {{ booking.payment_status }}">Payment: {{ booking.payment_status|replace('_', ' ') }}</span>
+                {% if booking.escrow and booking.escrow.status == 'held' %}
+                <span class="meta"> · ${{ "%.2f"|format(booking.escrow.amount) }} in escrow</span>
+                {% endif %}
 
                 <div class="actions">
+                    {% if user_type != 'worker' and booking.payment_status == 'pending' %}
+                    <a href="{{ url_for('escrow_pay', booking_id=booking.id) }}" class="btn btn-primary">Pay into escrow</a>
+                    {% endif %}
                     {% if user_type == 'worker' and booking.status == 'pending' %}
                     <form method="POST" action="{{ url_for('update_booking', booking_id=booking.id) }}" style="display:inline;">
                         <button type="submit" name="action" value="accept" class="btn btn-success">Accept</button>

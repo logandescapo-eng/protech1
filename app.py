@@ -23,8 +23,13 @@ from db_functions import (
     get_user_by_id, update_user_profile, update_worker_profile,
     get_message_contacts, get_messages_between, send_message,
     mark_messages_read, count_unread_messages,
-    get_initials
+    get_initials, create_notification
 )
+from escrow_service import (
+    ensure_wallet, get_wallet, get_wallet_transactions, get_escrow_vault_summary,
+    get_escrow_for_booking, deposit_demo_funds, fund_escrow, release_escrow, refund_escrow,
+)
+from config import ESCROW_PLATFORM_FEE_PERCENT
 
 app = Flask(__name__)
 app.secret_key = SECRET_KEY
@@ -308,13 +313,18 @@ def book_worker(worker_id):
         result = create_booking(user_id, worker_id, data)
         
         if result['success']:
-            flash('Booking request submitted successfully!', 'success')
-            return redirect(url_for('user_dashboard'))
+            flash('Booking created. Place funds in escrow to secure payment.', 'success')
+            return redirect(url_for('escrow_pay', booking_id=result['booking_id']))
         else:
             flash(result.get('message', 'Failed to create booking'), 'error')
     
     categories = get_service_categories()
-    return render_template('book_worker.html', worker=worker, categories=categories)
+    return render_template(
+        'book_worker.html',
+        worker=worker,
+        categories=categories,
+        platform_fee_percent=ESCROW_PLATFORM_FEE_PERCENT,
+    )
 
 @app.route('/bookings')
 @login_required
@@ -335,11 +345,17 @@ def my_bookings():
     pending_review_ids = set()
     if user_type != 'worker':
         pending_review_ids = {b['id'] for b in get_pending_reviews(user_id)}
+
+    wallet = get_wallet(user_id)
+    for b in bookings:
+        b['escrow'] = get_escrow_for_booking(b['id'])
     
     return render_template('my_bookings.html',
                          bookings=bookings,
                          user_type=user_type,
-                         pending_review_ids=pending_review_ids)
+                         pending_review_ids=pending_review_ids,
+                         wallet=wallet,
+                         platform_fee_percent=ESCROW_PLATFORM_FEE_PERCENT)
 
 @app.route('/booking/<int:booking_id>/status', methods=['POST'])
 @login_required
@@ -377,6 +393,36 @@ def update_booking(booking_id):
         result = update_booking_status(booking_id, status_map[action], user_id)
         if result['success']:
             flash(f'Booking {action}ed successfully', 'success')
+            if action == 'complete':
+                escrow_result = release_escrow(booking_id)
+                if escrow_result.get('success') and escrow_result.get('worker_payout') is not None:
+                    flash(
+                        f'Escrow released: ${escrow_result["worker_payout"]:.2f} paid to professional '
+                        f'({ESCROW_PLATFORM_FEE_PERCENT}% platform fee applied).',
+                        'success',
+                    )
+                    booking = get_booking(booking_id)
+                    if booking:
+                        worker = get_worker(booking['worker_id'])
+                        if worker:
+                            create_notification(
+                                worker['user_id'], 'Payment received',
+                                f'${escrow_result["worker_payout"]:.2f} from escrow for "{booking["title"]}".',
+                                'system', '/wallet',
+                            )
+                elif escrow_result.get('message') != 'No escrow funds held for this booking':
+                    flash(escrow_result.get('message', 'Escrow release failed'), 'error')
+            elif action in ('decline', 'cancel'):
+                refund_result = refund_escrow(booking_id)
+                if refund_result.get('success') and refund_result.get('refunded'):
+                    flash(f'${refund_result["refunded"]:.2f} returned to client wallet from escrow.', 'success')
+                    booking = get_booking(booking_id)
+                    if booking:
+                        create_notification(
+                            booking['user_id'], 'Escrow refunded',
+                            f'${refund_result["refunded"]:.2f} was refunded to your wallet.',
+                            'system', '/wallet',
+                        )
         else:
             flash(result.get('message', 'Failed to update booking'), 'error')
     
@@ -598,6 +644,76 @@ def settings_page():
         return redirect(url_for('settings_page'))
 
     return render_template('settings.html', user=user, worker=worker, user_type=user_type)
+
+# ==================== ESCROW & WALLET ====================
+
+@app.route('/wallet', methods=['GET', 'POST'])
+@login_required
+def wallet_page():
+    """User wallet — balance, deposits (demo), transaction history"""
+    user_id = get_current_user_id()
+    ensure_wallet(user_id)
+
+    if request.method == 'POST':
+        try:
+            amount = float(request.form.get('amount', 0))
+        except (ValueError, TypeError):
+            amount = 0
+        result = deposit_demo_funds(user_id, amount)
+        if result['success']:
+            flash(f'${amount:.2f} added to your wallet (demo deposit)', 'success')
+        else:
+            flash(result.get('message', 'Deposit failed'), 'error')
+        return redirect(url_for('wallet_page'))
+
+    wallet = get_wallet(user_id)
+    transactions = get_wallet_transactions(user_id)
+    vault = get_escrow_vault_summary()
+    return render_template(
+        'wallet.html',
+        wallet=wallet,
+        transactions=transactions,
+        vault=vault,
+        platform_fee_percent=ESCROW_PLATFORM_FEE_PERCENT,
+    )
+
+@app.route('/booking/<int:booking_id>/escrow', methods=['GET', 'POST'])
+@login_required
+@user_type_required('user')
+def escrow_pay(booking_id):
+    """Fund escrow for a booking from wallet balance"""
+    user_id = get_current_user_id()
+    ensure_wallet(user_id)
+    booking = get_booking(booking_id)
+
+    if not booking or booking['user_id'] != user_id:
+        flash('Booking not found', 'error')
+        return redirect(url_for('my_bookings'))
+
+    escrow = get_escrow_for_booking(booking_id)
+    wallet = get_wallet(user_id)
+
+    if request.method == 'POST':
+        result = fund_escrow(user_id, booking_id)
+        if result['success']:
+            flash(f'${result["amount"]:.2f} secured in escrow. Funds are held until the job is completed.', 'success')
+            worker = get_worker(booking['worker_id'])
+            if worker:
+                create_notification(
+                    worker['user_id'], 'Payment in escrow',
+                    f'Client placed ${result["amount"]:.2f} in escrow for "{booking["title"]}".',
+                    'system', '/bookings',
+                )
+            return redirect(url_for('my_bookings'))
+        flash(result.get('message', 'Escrow payment failed'), 'error')
+
+    return render_template(
+        'escrow_pay.html',
+        booking=booking,
+        wallet=wallet,
+        escrow=escrow,
+        platform_fee_percent=ESCROW_PLATFORM_FEE_PERCENT,
+    )
 
 # ==================== ERROR HANDLERS ====================
 

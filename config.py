@@ -41,3 +41,7 @@ _on_railway = bool(
 )
 SECRET_KEY = os.getenv('SECRET_KEY', 'dev-secret-change-in-production')
 DEBUG = os.getenv('FLASK_DEBUG', 'false' if _on_railway else 'true').lower() == 'true'
+
+# Escrow (platform holds funds until job completion)
+ESCROW_PLATFORM_FEE_PERCENT = float(os.getenv('ESCROW_PLATFORM_FEE_PERCENT', '5'))
+ESCROW_DEMO_DEPOSIT_MAX = float(os.getenv('ESCROW_DEMO_DEPOSIT_MAX', '1000'))

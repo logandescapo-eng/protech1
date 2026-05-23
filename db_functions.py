@@ -308,7 +308,7 @@ def get_user_stats(user_id):
         # Total spent
         cur.execute(
             """SELECT COALESCE(SUM(price), 0) as total FROM bookings 
-               WHERE user_id = %s AND status = 'completed' AND payment_status = 'paid'""",
+               WHERE user_id = %s AND status = 'completed' AND payment_status IN ('released', 'paid')""",
             (user_id,)
         )
         stats['total_spent'] = float(cur.fetchone()['total'] or 0)

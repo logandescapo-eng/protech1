@@ -30,6 +30,21 @@ A marketplace web application connecting clients with professional service worke
 
 Health check: `https://YOUR-URL/health` should return `{"status":"ok","database":"connected"}`.
 
+**Escrow on existing DB:** `python migrate_escrow.py "YOUR_DATABASE_URL"`
+
+---
+
+## Escrow payments
+
+ProTech holds job payments in a **platform escrow vault** until the worker marks the job complete.
+
+1. **Wallet** (`/wallet`) — add demo funds (simulated bank deposit).
+2. **Book a pro** — after booking, **Pay into escrow** moves money from wallet → vault.
+3. **Job complete** — funds release to the worker's wallet (minus 5% platform fee by default).
+4. **Cancelled** — full refund from escrow back to the client's wallet.
+
+This build uses an internal ledger (not real banks). For production, connect **Stripe** or another licensed processor and map webhooks to `escrow_service.py`.
+
 ---
 
 ## 🎯 What ProTech Does

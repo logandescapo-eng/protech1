@@ -3,6 +3,7 @@ Initialize ProTech database from database.sql
 Usage: python init_db.py <DATABASE_URL>
 """
 
+import os
 import sys
 import psycopg2
 import bcrypt
@@ -98,6 +99,19 @@ def main():
 
     fix_demo_passwords(cur)
     conn.commit()
+
+    escrow_path = "migrations/escrow.sql"
+    if os.path.exists(escrow_path):
+        print("Applying escrow migration (idempotent)...")
+        with open(escrow_path, "r", encoding="utf-8") as f:
+            for stmt in split_sql(f.read()):
+                try:
+                    cur.execute(stmt)
+                except Exception as e:
+                    err = str(e).lower()
+                    if "already exists" not in err and "duplicate" not in err:
+                        print(f"  Escrow note: {e}")
+        conn.commit()
 
     cur.execute("SELECT COUNT(*) FROM users")
     count = cur.fetchone()[0]

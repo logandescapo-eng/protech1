@@ -40,6 +40,12 @@ def register_user(name, email, phone, password, user_type):
         )
         user_id = cur.fetchone()['id']
         conn.commit()
+
+        try:
+            from escrow_service import ensure_wallet
+            ensure_wallet(user_id)
+        except Exception:
+            pass
         
         return {'success': True, 'user_id': user_id, 'message': 'Registration successful'}
         

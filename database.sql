@@ -71,7 +71,7 @@ CREATE TABLE IF NOT EXISTS bookings (
     address VARCHAR(500) NOT NULL,
     price DECIMAL(10,2) NOT NULL,
     status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'confirmed', 'in_progress', 'completed', 'cancelled')),
-    payment_status VARCHAR(20) DEFAULT 'pending' CHECK (payment_status IN ('pending', 'paid', 'refunded')),
+    payment_status VARCHAR(20) DEFAULT 'pending' CHECK (payment_status IN ('pending', 'escrow_held', 'released', 'refunded', 'paid')),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -129,6 +129,49 @@ CREATE TABLE IF NOT EXISTS worker_availability (
     is_available BOOLEAN DEFAULT TRUE
 );
 
+-- Escrow wallet system (platform holds payment until job completion)
+CREATE TABLE IF NOT EXISTS user_wallets (
+    user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    available_balance DECIMAL(12,2) NOT NULL DEFAULT 0.00 CHECK (available_balance >= 0),
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS escrow_vault (
+    id INTEGER PRIMARY KEY DEFAULT 1 CHECK (id = 1),
+    total_held DECIMAL(14,2) NOT NULL DEFAULT 0.00 CHECK (total_held >= 0),
+    total_released DECIMAL(14,2) NOT NULL DEFAULT 0.00 CHECK (total_released >= 0),
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+INSERT INTO escrow_vault (id, total_held, total_released) VALUES (1, 0, 0)
+ON CONFLICT (id) DO NOTHING;
+
+CREATE TABLE IF NOT EXISTS escrow_holds (
+    id SERIAL PRIMARY KEY,
+    booking_id INTEGER NOT NULL UNIQUE REFERENCES bookings(id) ON DELETE CASCADE,
+    client_id INTEGER NOT NULL REFERENCES users(id),
+    worker_user_id INTEGER NOT NULL REFERENCES users(id),
+    amount DECIMAL(12,2) NOT NULL CHECK (amount > 0),
+    platform_fee DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+    worker_payout DECIMAL(12,2),
+    status VARCHAR(20) NOT NULL DEFAULT 'held'
+        CHECK (status IN ('held', 'released', 'refunded')),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    released_at TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS wallet_transactions (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    booking_id INTEGER REFERENCES bookings(id) ON DELETE SET NULL,
+    escrow_id INTEGER REFERENCES escrow_holds(id) ON DELETE SET NULL,
+    transaction_type VARCHAR(32) NOT NULL,
+    amount DECIMAL(12,2) NOT NULL,
+    balance_after DECIMAL(12,2) NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Create indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_bookings_user ON bookings(user_id);
 CREATE INDEX IF NOT EXISTS idx_bookings_worker ON bookings(worker_id);
@@ -137,6 +180,8 @@ CREATE INDEX IF NOT EXISTS idx_bookings_date ON bookings(scheduled_date);
 CREATE INDEX IF NOT EXISTS idx_reviews_worker ON reviews(worker_id);
 CREATE INDEX IF NOT EXISTS idx_messages_receiver ON messages(receiver_id, is_read);
 CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id, is_read);
+CREATE INDEX IF NOT EXISTS idx_wallet_tx_user ON wallet_transactions(user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_escrow_holds_status ON escrow_holds(status);
 
 -- Function to update worker rating
 CREATE OR REPLACE FUNCTION update_worker_rating()
@@ -212,3 +257,11 @@ INSERT INTO workers (user_id, service_area, skills, experience, hourly_rate, rat
 SELECT id, 'Los Angeles', 'House Cleaning, Deep Cleaning', 4, 45.00, 4.7, 65, 230
 FROM users WHERE email = 'david@example.com'
 ON CONFLICT (user_id) DO NOTHING;
+
+-- Wallets for all users (demo balance for sample client)
+INSERT INTO user_wallets (user_id, available_balance)
+SELECT id, 0 FROM users
+ON CONFLICT (user_id) DO NOTHING;
+
+UPDATE user_wallets SET available_balance = 500.00
+WHERE user_id = (SELECT id FROM users WHERE email = 'john@example.com' LIMIT 1);
