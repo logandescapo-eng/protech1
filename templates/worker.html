@@ -546,7 +546,7 @@
         <div class="top-nav-right">
             <button class="icon-btn">
                 <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-                <span class="notification-badge">5</span>
+                {% if unread_notifications > 0 %}<span class="notification-badge">{{ unread_notifications }}</span>{% endif %}
             </button>
             <button class="icon-btn">
                 <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
@@ -681,72 +681,53 @@
                 <div class="card">
                     <div class="card-header">
                         <h2>New Job Requests</h2>
-                        <a href="#" class="card-link">View All</a>
+                        <a href="{{ url_for('my_bookings') }}" class="card-link">View All</a>
                     </div>
                     <div class="card-body">
+                        {% if pending_requests %}
                         <div class="job-list">
+                            {% for booking in pending_requests %}
                             <div class="job-item">
                                 <div class="job-header">
                                     <div>
-                                        <div class="job-title">Bathroom Faucet Installation</div>
-                                        <div class="job-client">Mark Thompson</div>
+                                        <div class="job-title">{{ booking.title }}</div>
+                                        <div class="job-client">{{ booking.client_name or 'Client' }}</div>
                                     </div>
-                                    <div class="job-price">$95</div>
+                                    <div class="job-price">${{ "%.0f"|format(booking.price) if booking.price else '0' }}</div>
                                 </div>
                                 <div class="job-details">
                                     <div class="job-detail">
                                         <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                                        Dec 17, 2024
+                                        {{ booking.scheduled_date.strftime('%b %d, %Y') if booking.scheduled_date else 'TBD' }}
                                     </div>
                                     <div class="job-detail">
                                         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                                        2:00 PM
+                                        {{ booking.scheduled_time.strftime('%I:%M %p') if booking.scheduled_time else 'TBD' }}
                                     </div>
+                                    {% if booking.address %}
                                     <div class="job-detail">
                                         <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                                        4.1 miles away
+                                        {{ booking.address }}
                                     </div>
+                                    {% endif %}
                                 </div>
-                                <div class="job-description">
-                                    Need to install a new bathroom faucet. All parts and materials included.
-                                </div>
+                                {% if booking.description %}
+                                <div class="job-description">{{ booking.description }}</div>
+                                {% endif %}
                                 <div class="job-actions">
-                                    <button class="btn btn-success">Accept</button>
-                                    <button class="btn btn-outline">Decline</button>
+                                    <form method="POST" action="{{ url_for('update_booking', booking_id=booking.id) }}" style="display:inline;">
+                                        <button type="submit" name="action" value="accept" class="btn btn-success">Accept</button>
+                                    </form>
+                                    <form method="POST" action="{{ url_for('update_booking', booking_id=booking.id) }}" style="display:inline;">
+                                        <button type="submit" name="action" value="decline" class="btn btn-outline">Decline</button>
+                                    </form>
                                 </div>
                             </div>
-
-                            <div class="job-item">
-                                <div class="job-header">
-                                    <div>
-                                        <div class="job-title">Water Heater Inspection</div>
-                                        <div class="job-client">Jennifer Davis</div>
-                                    </div>
-                                    <div class="job-price">$150</div>
-                                </div>
-                                <div class="job-details">
-                                    <div class="job-detail">
-                                        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                                        Dec 18, 2024
-                                    </div>
-                                    <div class="job-detail">
-                                        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                                        9:00 AM
-                                    </div>
-                                    <div class="job-detail">
-                                        <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                                        1.8 miles away
-                                    </div>
-                                </div>
-                                <div class="job-description">
-                                    Annual water heater maintenance and inspection. Making strange noises recently.
-                                </div>
-                                <div class="job-actions">
-                                    <button class="btn btn-success">Accept</button>
-                                    <button class="btn btn-outline">Decline</button>
-                                </div>
-                            </div>
+                            {% endfor %}
                         </div>
+                        {% else %}
+                        <p style="color:#6b7280;padding:1rem 0;">No new job requests.</p>
+                        {% endif %}
                     </div>
                 </div>
 
@@ -755,50 +736,32 @@
                         <h2>Today's Schedule</h2>
                     </div>
                     <div class="card-body">
+                        {% if today_schedule %}
+                        {% for booking in today_schedule %}
                         <div class="schedule-item">
                             <div class="schedule-time">
-                                <div class="schedule-time-hour">9:00</div>
-                                <div class="schedule-time-period">AM</div>
+                                {% if booking.scheduled_time %}
+                                <div class="schedule-time-hour">{{ booking.scheduled_time.strftime('%I:%M') }}</div>
+                                <div class="schedule-time-period">{{ booking.scheduled_time.strftime('%p') }}</div>
+                                {% else %}
+                                <div class="schedule-time-hour">—</div>
+                                {% endif %}
                             </div>
                             <div class="schedule-info">
-                                <div class="schedule-title">Pipe Replacement</div>
-                                <div class="schedule-client">Robert Martinez</div>
+                                <div class="schedule-title">{{ booking.title }}</div>
+                                <div class="schedule-client">{{ booking.client_name or 'Client' }}</div>
+                                {% if booking.address %}
                                 <div class="schedule-location">
                                     <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                                    123 Oak Street
+                                    {{ booking.address }}
                                 </div>
+                                {% endif %}
                             </div>
                         </div>
-
-                        <div class="schedule-item">
-                            <div class="schedule-time">
-                                <div class="schedule-time-hour">2:00</div>
-                                <div class="schedule-time-period">PM</div>
-                            </div>
-                            <div class="schedule-info">
-                                <div class="schedule-title">Toilet Repair</div>
-                                <div class="schedule-client">Emily Chen</div>
-                                <div class="schedule-location">
-                                    <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                                    456 Maple Avenue
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="schedule-item">
-                            <div class="schedule-time">
-                                <div class="schedule-time-hour">4:30</div>
-                                <div class="schedule-time-period">PM</div>
-                            </div>
-                            <div class="schedule-info">
-                                <div class="schedule-title">Drain Cleaning</div>
-                                <div class="schedule-client">David Wilson</div>
-                                <div class="schedule-location">
-                                    <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                                    789 Pine Road
-                                </div>
-                            </div>
-                        </div>
+                        {% endfor %}
+                        {% else %}
+                        <p style="color:#6b7280;padding:1rem 0;">Nothing scheduled for today.</p>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -806,92 +769,34 @@
             <div class="card">
                 <div class="card-header">
                     <h2>Recent Completions</h2>
-                    <a href="#" class="card-link">View All</a>
+                    <a href="{{ url_for('my_bookings') }}" class="card-link">View All</a>
                 </div>
                 <div class="card-body">
+                    {% if recent_completed %}
                     <div class="job-list">
+                        {% for booking in recent_completed %}
                         <div class="job-item">
                             <div class="job-header">
                                 <div>
-                                    <div class="job-title">Emergency Pipe Repair</div>
-                                    <div class="job-client">Lisa Anderson • Completed Dec 14</div>
+                                    <div class="job-title">{{ booking.title }}</div>
+                                    <div class="job-client">{{ booking.client_name or 'Client' }} • Completed {{ booking.scheduled_date.strftime('%b %d, %Y') if booking.scheduled_date else '' }}</div>
                                 </div>
-                                <div class="job-price">$185</div>
+                                <div class="job-price">${{ "%.0f"|format(booking.price) if booking.price else '0' }}</div>
                             </div>
+                            {% if booking.service_name %}
                             <div class="job-details">
-                                <div class="job-detail">
-                                    <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                                    ⭐ 5.0 - "Excellent work!"
-                                </div>
+                                <div class="job-detail">{{ booking.service_name }}</div>
                             </div>
+                            {% endif %}
                         </div>
-
-                        <div class="job-item">
-                            <div class="job-header">
-                                <div>
-                                    <div class="job-title">Shower Installation</div>
-                                    <div class="job-client">Tom Harris • Completed Dec 13</div>
-                                </div>
-                                <div class="job-price">$320</div>
-                            </div>
-                            <div class="job-details">
-                                <div class="job-detail">
-                                    <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                                    ⭐ 4.8 - "Very professional"
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="job-item">
-                            <div class="job-header">
-                                <div>
-                                    <div class="job-title">Garbage Disposal Fix</div>
-                                    <div class="job-client">Rachel Green • Completed Dec 12</div>
-                                </div>
-                                <div class="job-price">$90</div>
-                            </div>
-                            <div class="job-details">
-                                <div class="job-detail">
-                                    <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                                    ⭐ 5.0 - "Fast and reliable"
-                                </div>
-                            </div>
-                        </div>
+                        {% endfor %}
                     </div>
+                    {% else %}
+                    <p style="color:#6b7280;padding:1rem 0;">No completed jobs yet.</p>
+                    {% endif %}
                 </div>
             </div>
         </main>
     </div>
 </body>
-</html>title">Kitchen Sink Repair</div>
-                                        <div class="job-client">Sarah Williams</div>
-                                    </div>
-                                    <div class="job-price">$120</div>
-                                </div>
-                                <div class="job-details">
-                                    <div class="job-detail">
-                                        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                                        Dec 16, 2024
-                                    </div>
-                                    <div class="job-detail">
-                                        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                                        10:00 AM
-                                    </div>
-                                    <div class="job-detail">
-                                        <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                                        2.3 miles away
-                                    </div>
-                                </div>
-                                <div class="job-description">
-                                    Leaking kitchen sink needs urgent repair. The pipe under the sink is dripping constantly.
-                                </div>
-                                <div class="job-actions">
-                                    <button class="btn btn-success">Accept</button>
-                                    <button class="btn btn-outline">Decline</button>
-                                </div>
-                            </div>
-
-                            <div class="job-item">
-                                <div class="job-header">
-                                    <div>
-                                        <div class="job-
+</html>

@@ -4,17 +4,64 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Browse Workers - ProTech</title>
+    {% include 'partials/app_page_styles.html' %}
 </head>
 <body>
-    <h1>Browse Workers</h1>
-    <a href="{{ url_for('user_dashboard') }}">Back to Dashboard</a>
-    {% for worker in workers %}
-        <div>
-            <h3>{{ worker.name }}</h3>
-            <p>Skills: {{ worker.skills }}</p>
-            <p>Rating: {{ worker.rating }}/5.0</p>
-            <a href="{{ url_for('book_worker', worker_id=worker.id) }}">Book</a>
+    <div class="wrap">
+        <div class="nav">
+            <a href="{{ url_for('user_dashboard') }}">← Dashboard</a>
+            <a href="{{ url_for('my_bookings') }}">My Bookings</a>
         </div>
-    {% endfor %}
+
+        <h1>Find a Professional</h1>
+        <p class="sub">Browse skilled workers and book a service</p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class="flash {{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="GET" class="card">
+            <div class="filters">
+                <div>
+                    <label for="skill">Skill</label>
+                    <input type="text" id="skill" name="skill" value="{{ request.args.get('skill', '') }}" placeholder="e.g. Plumbing">
+                </div>
+                <div>
+                    <label for="location">Location</label>
+                    <input type="text" id="location" name="location" value="{{ request.args.get('location', '') }}" placeholder="e.g. New York">
+                </div>
+                <div>
+                    <label for="min_rating">Min rating</label>
+                    <input type="number" id="min_rating" name="min_rating" min="0" max="5" step="0.1" value="{{ request.args.get('min_rating', '') }}" placeholder="4.0">
+                </div>
+                <div style="display:flex;align-items:flex-end;">
+                    <button type="submit" class="btn btn-primary">Search</button>
+                </div>
+            </div>
+        </form>
+
+        {% if workers %}
+            {% for worker in workers %}
+            <div class="card">
+                <h3>{{ worker.name }}</h3>
+                <p class="meta">{{ worker.service_area }} · <span class="rating">★ {{ "%.1f"|format(worker.rating or 0) }}</span> ({{ worker.total_reviews or 0 }} reviews) · {{ worker.total_jobs or 0 }} jobs</p>
+                <p><strong>Skills:</strong> {{ worker.skills }}</p>
+                {% if worker.experience %}<p class="meta">{{ worker.experience }} years experience · ${{ "%.0f"|format(worker.hourly_rate or 0) }}/hr</p>{% endif %}
+                <p style="margin-top:0.75rem;">
+                    <a href="{{ url_for('book_worker', worker_id=worker.id) }}" class="btn btn-primary">Book {{ worker.name.split()[0] }}</a>
+                </p>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty">
+                <p>No workers match your search.</p>
+                <p style="margin-top:1rem;"><a href="{{ url_for('browse_workers') }}" class="btn btn-outline">Clear filters</a></p>
+            </div>
+        {% endif %}
+    </div>
 </body>
 </html>

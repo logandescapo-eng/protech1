@@ -26,25 +26,25 @@ try:
     print(f"\nGenerated new hash for 'password123':")
     print(f"   {new_hash[:50]}...")
     
-    # Update all test users
-    test_emails = [
-        'john@example.com',
-        'mike@example.com',
-        'sarah@example.com',
-        'david@example.com'
+    test_users = [
+        ("John Client", "john@example.com", "+1234567890", "user"),
+        ("Mike Plumber", "mike@example.com", "+1234567891", "worker"),
+        ("Sarah Electrician", "sarah@example.com", "+1234567892", "worker"),
+        ("David Cleaner", "david@example.com", "+1234567893", "worker"),
     ]
-    
-    print("\nUpdating passwords for test users...")
-    for email in test_emails:
+
+    print("\nUpdating or creating demo users...")
+    for name, email, phone, user_type in test_users:
         cur.execute(
-            "UPDATE users SET password = %s WHERE email = %s RETURNING name;",
-            (new_hash, email)
+            """
+            INSERT INTO users (name, email, phone, password, user_type)
+            VALUES (%s, %s, %s, %s, %s)
+            ON CONFLICT (email) DO UPDATE SET password = EXCLUDED.password
+            RETURNING name
+            """,
+            (name, email, phone, new_hash, user_type),
         )
-        result = cur.fetchone()
-        if result:
-            print(f"   ✅ Updated {result[0]} ({email})")
-        else:
-            print(f"   ⚠️  {email} not found (skipping)")
+        print(f"   OK {cur.fetchone()[0]} ({email})")
     
     conn.commit()
     print("\n✅ All passwords updated successfully!")

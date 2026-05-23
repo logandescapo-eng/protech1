@@ -34,5 +34,10 @@ else:
     DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
 # Flask configuration
-SECRET_KEY = os.getenv('SECRET_KEY', 'your-secret-key-change-this-in-production')
-DEBUG = os.getenv('FLASK_DEBUG', 'True').lower() == 'true'
+_on_railway = bool(
+    os.getenv('RAILWAY_ENVIRONMENT')
+    or os.getenv('RAILWAY_PUBLIC_DOMAIN')
+    or os.getenv('DATABASE_URL')
+)
+SECRET_KEY = os.getenv('SECRET_KEY', 'dev-secret-change-in-production')
+DEBUG = os.getenv('FLASK_DEBUG', 'false' if _on_railway else 'true').lower() == 'true'

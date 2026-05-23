@@ -2,16 +2,44 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Leave Review - ProTech</title>
+    {% include 'partials/app_page_styles.html' %}
 </head>
 <body>
-    <h1>Leave Review for {{ booking.title }}</h1>
-    <form method="POST">
-        <label>Rating (1-5):</label>
-        <input type="number" name="rating" min="1" max="5" required><br>
-        <label>Comment:</label>
-        <textarea name="comment"></textarea><br>
-        <button type="submit">Submit Review</button>
-    </form>
+    <div class="wrap">
+        <div class="nav">
+            <a href="{{ url_for('my_bookings') }}">← My Bookings</a>
+            <a href="{{ url_for('user_dashboard') }}">Dashboard</a>
+        </div>
+
+        <h1>Leave a review</h1>
+        <p class="sub">{{ booking.title }} with {{ booking.worker_name or 'your professional' }}</p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class="flash {{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" class="card">
+            <div class="form-group">
+                <label for="rating">Rating (1–5 stars)</label>
+                <select id="rating" name="rating" required>
+                    <option value="">Select rating</option>
+                    {% for n in range(5, 0, -1) %}
+                    <option value="{{ n }}">{{ n }} star{{ 's' if n != 1 else '' }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="comment">Comment (optional)</label>
+                <textarea id="comment" name="comment" placeholder="Share your experience"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit review</button>
+        </form>
+    </div>
 </body>
 </html>

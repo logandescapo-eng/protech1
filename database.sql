@@ -185,13 +185,17 @@ EXECUTE FUNCTION update_worker_jobs();
 -- SAMPLE DATA (Optional - for testing)
 -- =====================================================
 
--- Sample Users (password is 'password123' hashed with bcrypt)
+-- Sample Users (password: password123, bcrypt $2b$10)
 INSERT INTO users (name, email, phone, password, user_type) VALUES
-('John Client', 'john@example.com', '+1234567890', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'user'),
-('Mike Plumber', 'mike@example.com', '+1234567891', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'worker'),
-('Sarah Electrician', 'sarah@example.com', '+1234567892', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'worker'),
-('David Cleaner', 'david@example.com', '+1234567893', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'worker')
-ON CONFLICT (email) DO NOTHING;
+('John Client', 'john@example.com', '+1234567890', '$2b$10$aa5cRBQ6GFpC1WzhyMAw8uCmwgSkEOP2gXATp9uWx5mbPDk1YQCRm', 'user'),
+('Mike Plumber', 'mike@example.com', '+1234567891', '$2b$10$aa5cRBQ6GFpC1WzhyMAw8uCmwgSkEOP2gXATp9uWx5mbPDk1YQCRm', 'worker'),
+('Sarah Electrician', 'sarah@example.com', '+1234567892', '$2b$10$aa5cRBQ6GFpC1WzhyMAw8uCmwgSkEOP2gXATp9uWx5mbPDk1YQCRm', 'worker'),
+('David Cleaner', 'david@example.com', '+1234567893', '$2b$10$aa5cRBQ6GFpC1WzhyMAw8uCmwgSkEOP2gXATp9uWx5mbPDk1YQCRm', 'worker')
+ON CONFLICT (email) DO UPDATE SET
+    password = EXCLUDED.password,
+    name = EXCLUDED.name,
+    phone = EXCLUDED.phone,
+    user_type = EXCLUDED.user_type;
 
 -- Sample Workers
 INSERT INTO workers (user_id, service_area, skills, experience, hourly_rate, rating, total_reviews, total_jobs) 

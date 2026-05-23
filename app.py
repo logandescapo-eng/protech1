@@ -24,6 +24,12 @@ app = Flask(__name__)
 app.secret_key = SECRET_KEY
 app.debug = DEBUG
 
+if os.getenv('RAILWAY_ENVIRONMENT') or os.getenv('DATABASE_URL'):
+    from werkzeug.middleware.proxy_fix import ProxyFix
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
+    app.config['SESSION_COOKIE_SECURE'] = True
+    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+
 # ==================== HELPER FUNCTIONS ====================
 
 def get_current_user_id():
@@ -35,6 +41,20 @@ def get_current_user_name():
     return session.get('user_name', 'User')
 
 # ==================== ROUTES ====================
+
+@app.route('/health')
+def health():
+    """Health check for Railway (includes DB connectivity)."""
+    try:
+        from db_connection import get_db_connection
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute('SELECT 1')
+        cur.close()
+        conn.close()
+        return {'status': 'ok', 'database': 'connected'}, 200
+    except Exception as e:
+        return {'status': 'error', 'database': str(e)}, 503
 
 @app.route('/')
 def index():
@@ -139,11 +159,17 @@ def user_dashboard():
     
     # Get initials for avatar
     initials = get_initials(user_name)
+    pending_reviews = get_pending_reviews(user_id)
+    recent_completed = [b for b in get_user_bookings(user_id) if b['status'] == 'completed'][:5]
+    pending_review_ids = {b['id'] for b in pending_reviews}
     
     return render_template('user.html',
                          user_name=user_name,
                          stats=stats,
                          upcoming_bookings=upcoming_bookings,
+                         pending_reviews=pending_reviews,
+                         pending_review_ids=pending_review_ids,
+                         recent_completed=recent_completed,
                          initials=initials)
 
 @app.route('/worker/dashboard')
@@ -192,6 +218,7 @@ def worker_dashboard():
 
 @app.route('/workers')
 @login_required
+@user_type_required('user')
 def browse_workers():
     """Browse workers page"""
     filters = {}
@@ -215,6 +242,7 @@ def browse_workers():
 
 @app.route('/book/<int:worker_id>', methods=['GET', 'POST'])
 @login_required
+@user_type_required('user')
 def book_worker(worker_id):
     """Book a worker"""
     user_id = get_current_user_id()
@@ -276,7 +304,14 @@ def my_bookings():
     else:
         bookings = get_user_bookings(user_id)
     
-    return render_template('my_bookings.html', bookings=bookings, user_type=user_type)
+    pending_review_ids = set()
+    if user_type != 'worker':
+        pending_review_ids = {b['id'] for b in get_pending_reviews(user_id)}
+    
+    return render_template('my_bookings.html',
+                         bookings=bookings,
+                         user_type=user_type,
+                         pending_review_ids=pending_review_ids)
 
 @app.route('/booking/<int:booking_id>/status', methods=['POST'])
 @login_required
