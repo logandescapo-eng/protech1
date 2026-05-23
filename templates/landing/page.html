@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page_title }} - ProTech</title>
+    {% include 'partials/landing_styles.html' %}
+</head>
+<body class="landing-subpage">
+    {% include 'partials/landing_nav.html' %}
+
+    <main class="landing-page-main">
+        <div class="landing-page-wrap">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                    <div class="landing-flash {{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <h1>{{ page_title }}</h1>
+            {% if page_subtitle %}<p class="landing-lead">{{ page_subtitle }}</p>{% endif %}
+
+            <div class="landing-page-content">
+                {% include content_template %}
+            </div>
+
+            {% if cta_label and cta_url %}
+            <p style="margin-top:2rem;">
+                <a href="{{ cta_url }}" class="btn btn-primary">{{ cta_label }}</a>
+            </p>
+            {% endif %}
+        </div>
+    </main>
+
+    {% include 'partials/landing_footer.html' %}
+</body>
+</html>

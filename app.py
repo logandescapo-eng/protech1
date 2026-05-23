@@ -60,15 +60,36 @@ def dashboard_url():
 @app.context_processor
 def inject_layout_context():
     """Shared template variables for nav badges and links"""
-    if not is_logged_in():
-        return {}
-    uid = session.get('user_id')
-    return {
-        'layout_dashboard_url': dashboard_url(),
-        'layout_unread_notifications': count_unread_notifications(uid),
-        'layout_unread_messages': count_unread_messages(uid),
-        'layout_user_type': get_user_type(),
+    ctx = {
+        'is_logged_in': is_logged_in(),
+        'layout_dashboard_url': dashboard_url() if is_logged_in() else url_for('index'),
+        'platform_fee_percent': ESCROW_PLATFORM_FEE_PERCENT,
     }
+    if is_logged_in():
+        uid = session.get('user_id')
+        ctx.update({
+            'layout_unread_notifications': count_unread_notifications(uid),
+            'layout_unread_messages': count_unread_messages(uid),
+            'layout_user_type': get_user_type(),
+        })
+    else:
+        ctx.update({
+            'layout_unread_notifications': 0,
+            'layout_unread_messages': 0,
+            'layout_user_type': None,
+        })
+    return ctx
+
+
+def _render_landing_page(title, subtitle, content_template, cta_label=None, cta_url=None):
+    return render_template(
+        'landing/page.html',
+        page_title=title,
+        page_subtitle=subtitle,
+        content_template=content_template,
+        cta_label=cta_label,
+        cta_url=cta_url,
+    )
 
 # ==================== ROUTES ====================
 
@@ -90,6 +111,109 @@ def health():
 def index():
     """Home page"""
     return render_template('index.html')
+
+
+@app.route('/start/client')
+def start_client():
+    """Find a professional — dashboard or sign up"""
+    if is_logged_in():
+        if get_user_type() == 'user':
+            return redirect(url_for('browse_workers'))
+        return redirect(url_for('worker_dashboard'))
+    return redirect(url_for('auth', tab='user'))
+
+
+@app.route('/start/worker')
+def start_worker():
+    """Become a worker — dashboard or worker signup"""
+    if is_logged_in():
+        if get_user_type() == 'worker':
+            return redirect(url_for('worker_dashboard'))
+        return redirect(url_for('user_dashboard'))
+    return redirect(url_for('auth', tab='worker'))
+
+
+@app.route('/contact', methods=['POST'])
+def contact_submit():
+    """Landing page contact form"""
+    name = request.form.get('name', '').strip()
+    email = request.form.get('email', '').strip()
+    if name and email:
+        flash('Thank you for your message! We will get back to you soon.', 'success')
+    else:
+        flash('Please provide your name and email.', 'error')
+    return redirect(url_for('index') + '#contact')
+
+
+@app.route('/pricing')
+def landing_pricing():
+    return _render_landing_page(
+        'Pricing',
+        'Simple, transparent fees built around secure escrow.',
+        'landing/pricing_content.html',
+        'Get started',
+        url_for('start_client'),
+    )
+
+
+@app.route('/faq')
+def landing_faq():
+    return _render_landing_page(
+        'Frequently Asked Questions',
+        'Answers to common questions about ProTech.',
+        'landing/faq_content.html',
+        'Contact support',
+        url_for('landing_support'),
+    )
+
+
+@app.route('/support')
+def landing_support():
+    return _render_landing_page(
+        'Support',
+        'We are here to help.',
+        'landing/support_content.html',
+    )
+
+
+@app.route('/privacy')
+def landing_privacy():
+    return _render_landing_page('Privacy Policy', None, 'landing/privacy_content.html')
+
+
+@app.route('/terms')
+def landing_terms():
+    return _render_landing_page('Terms of Service', None, 'landing/terms_content.html')
+
+
+@app.route('/careers')
+def landing_careers():
+    return _render_landing_page('Careers', 'Build the future of local services.', 'landing/careers_content.html')
+
+
+@app.route('/blog')
+def landing_blog():
+    return _render_landing_page('Blog', 'News and guides from ProTech.', 'landing/blog_content.html')
+
+
+@app.route('/success-stories')
+def landing_success_stories():
+    return _render_landing_page(
+        'Success Stories',
+        'Real professionals and clients on ProTech.',
+        'landing/success_stories_content.html',
+        'Become a worker',
+        url_for('start_worker'),
+    )
+
+
+@app.route('/resources')
+def landing_resources():
+    return _render_landing_page(
+        'Resources',
+        'Guides for clients and professionals.',
+        'landing/resources_content.html',
+    )
 
 @app.route('/auth', methods=['GET', 'POST'])
 def auth():

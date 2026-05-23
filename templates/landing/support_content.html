@@ -1,0 +1,12 @@
+<p>We’re here to help with bookings, payments, and account issues.</p>
+<ul>
+    <li><strong>Email:</strong> support@protech.com</li>
+    <li><strong>Hours:</strong> Mon–Fri, 9am–6pm EST</li>
+    <li><strong>Phone:</strong> +7 (955) 123-4567</li>
+</ul>
+<p>Logged-in users can also use <strong>Messages</strong> to contact someone they have booked with.</p>
+<div class="cta-band">
+    <p><a href="{{ url_for('index') }}#contact" class="btn btn-primary">Contact form</a>
+    {% if is_logged_in %} · <a href="{{ url_for('messages_page') }}" class="btn btn-outline">Open messages</a>{% endif %}
+    </p>
+</div>

@@ -1,0 +1,41 @@
+<footer>
+    <div class="footer-content">
+        <div class="footer-section">
+            <h4>ProTech</h4>
+            <p style="color: #9ca3af; margin-top: 0.5rem;">Connecting professionals with clients worldwide.</p>
+        </div>
+        <div class="footer-section">
+            <h4>For Clients</h4>
+            <ul class="footer-links">
+                <li><a href="{{ url_for('start_client') }}">Find a Professional</a></li>
+                <li><a href="{{ url_for('index') }}#how-it-works">How It Works</a></li>
+                <li><a href="{{ url_for('landing_pricing') }}">Pricing</a></li>
+                <li><a href="{{ url_for('landing_faq') }}">FAQs</a></li>
+            </ul>
+        </div>
+        <div class="footer-section">
+            <h4>For Professionals</h4>
+            <ul class="footer-links">
+                <li><a href="{{ url_for('start_worker') }}">Become a Worker</a></li>
+                <li><a href="{{ url_for('landing_success_stories') }}">Success Stories</a></li>
+                <li><a href="{{ url_for('landing_resources') }}">Resources</a></li>
+                <li><a href="{{ url_for('landing_support') }}">Support</a></li>
+            </ul>
+        </div>
+        <div class="footer-section">
+            <h4>Company</h4>
+            <ul class="footer-links">
+                <li><a href="{{ url_for('index') }}#about">About Us</a></li>
+                <li><a href="{{ url_for('landing_careers') }}">Careers</a></li>
+                <li><a href="{{ url_for('landing_blog') }}">Blog</a></li>
+                <li><a href="{{ url_for('index') }}#contact">Contact</a></li>
+            </ul>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <p>&copy; 2025 ProTech. All rights reserved. |
+            <a href="{{ url_for('landing_privacy') }}" style="color:#9ca3af;">Privacy Policy</a> |
+            <a href="{{ url_for('landing_terms') }}" style="color:#9ca3af;">Terms of Service</a>
+        </p>
+    </div>
+</footer>
