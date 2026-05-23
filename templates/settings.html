@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - ProTech</title>
+    {% include 'partials/app_page_styles.html' %}
+</head>
+<body>
+    <div class="wrap">
+        {% include 'partials/subpage_nav.html' %}
+        <h1>Settings</h1>
+        <p class="sub">Update your account</p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class="flash {{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" class="card">
+            <input type="hidden" name="form_type" value="profile">
+            <h3 style="margin-bottom:1rem;">Profile</h3>
+            <div class="form-group">
+                <label for="name">Full name</label>
+                <input type="text" id="name" name="name" value="{{ user.name }}" required>
+            </div>
+            <div class="form-group">
+                <label for="phone">Phone</label>
+                <input type="tel" id="phone" name="phone" value="{{ user.phone }}" required>
+            </div>
+            <p class="meta">Email: {{ user.email }} (cannot be changed here)</p>
+
+            {% if user_type == 'worker' and worker %}
+            <hr style="margin:1.5rem 0;border:none;border-top:1px solid #e5e7eb;">
+            <h3 style="margin-bottom:1rem;">Professional details</h3>
+            <div class="form-group">
+                <label for="service_area">Service area</label>
+                <input type="text" id="service_area" name="service_area" value="{{ worker.service_area }}" required>
+            </div>
+            <div class="form-group">
+                <label for="skills">Skills</label>
+                <input type="text" id="skills" name="skills" value="{{ worker.skills }}" required>
+            </div>
+            <div class="form-group">
+                <label for="experience">Years of experience</label>
+                <input type="number" id="experience" name="experience" value="{{ worker.experience }}" min="0" required>
+            </div>
+            <div class="form-group">
+                <label for="bio">Bio (optional)</label>
+                <textarea id="bio" name="bio">{{ worker.bio or '' }}</textarea>
+            </div>
+            {% endif %}
+
+            <button type="submit" class="btn btn-primary">Save profile</button>
+        </form>
+
+        <form method="POST" class="card">
+            <input type="hidden" name="form_type" value="password">
+            <h3 style="margin-bottom:1rem;">Change password</h3>
+            <div class="form-group">
+                <label for="current_password">Current password</label>
+                <input type="password" id="current_password" name="current_password" required>
+            </div>
+            <div class="form-group">
+                <label for="new_password">New password</label>
+                <input type="password" id="new_password" name="new_password" minlength="6" required>
+            </div>
+            <div class="form-group">
+                <label for="confirm_password">Confirm new password</label>
+                <input type="password" id="confirm_password" name="confirm_password" minlength="6" required>
+            </div>
+            <button type="submit" class="btn btn-outline">Update password</button>
+        </form>
+    </div>
+</body>
+</html>

@@ -4,6 +4,7 @@ Main application file with all routes
 """
 
 import os
+import bcrypt
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 from config import SECRET_KEY, DEBUG
 from auth import (
@@ -15,8 +16,13 @@ from db_functions import (
     get_user_bookings, get_worker_bookings, get_worker_today_schedule,
     create_booking, update_booking_status, get_booking,
     get_user_stats, get_worker_stats,
-    create_review, get_pending_reviews,
-    get_service_categories, count_unread_notifications,
+    create_review, get_pending_reviews, get_reviews_by_user, get_worker_reviews,
+    get_service_categories, count_unread_notifications, get_notifications,
+    mark_notification_read, mark_all_notifications_read,
+    get_user_favorites, add_favorite, remove_favorite,
+    get_user_by_id, update_user_profile, update_worker_profile,
+    get_message_contacts, get_messages_between, send_message,
+    mark_messages_read, count_unread_messages,
     get_initials
 )
 
@@ -39,6 +45,25 @@ def get_current_user_id():
 def get_current_user_name():
     """Get current user name from session"""
     return session.get('user_name', 'User')
+
+def dashboard_url():
+    """URL for the logged-in user's main dashboard"""
+    if get_user_type() == 'worker':
+        return url_for('worker_dashboard')
+    return url_for('user_dashboard')
+
+@app.context_processor
+def inject_layout_context():
+    """Shared template variables for nav badges and links"""
+    if not is_logged_in():
+        return {}
+    uid = session.get('user_id')
+    return {
+        'layout_dashboard_url': dashboard_url(),
+        'layout_unread_notifications': count_unread_notifications(uid),
+        'layout_unread_messages': count_unread_messages(uid),
+        'layout_user_type': get_user_type(),
+    }
 
 # ==================== ROUTES ====================
 
@@ -170,7 +195,9 @@ def user_dashboard():
                          pending_reviews=pending_reviews,
                          pending_review_ids=pending_review_ids,
                          recent_completed=recent_completed,
-                         initials=initials)
+                         initials=initials,
+                         unread_notifications=count_unread_notifications(user_id),
+                         unread_messages=count_unread_messages(user_id))
 
 @app.route('/worker/dashboard')
 @login_required
@@ -214,6 +241,7 @@ def worker_dashboard():
                          today_schedule=today_schedule,
                          recent_completed=recent_completed,
                          unread_notifications=unread_notifications,
+                         unread_messages=count_unread_messages(user_id),
                          initials=initials)
 
 @app.route('/workers')
@@ -394,6 +422,182 @@ def review(booking_id):
             flash(result.get('message', 'Failed to create review'), 'error')
     
     return render_template('review.html', booking=booking)
+
+# ==================== ACCOUNT PAGES ====================
+
+@app.route('/notifications')
+@login_required
+def notifications_page():
+    """View and manage notifications"""
+    user_id = get_current_user_id()
+    if request.args.get('mark_all'):
+        mark_all_notifications_read(user_id)
+        flash('All notifications marked as read', 'success')
+        return redirect(url_for('notifications_page'))
+    nid = request.args.get('read')
+    if nid:
+        try:
+            mark_notification_read(int(nid))
+        except (ValueError, TypeError):
+            pass
+        return redirect(url_for('notifications_page'))
+    items = get_notifications(user_id, limit=50)
+    return render_template('notifications.html', notifications=items)
+
+@app.route('/messages', methods=['GET', 'POST'])
+@login_required
+def messages_page():
+    """Chat with booking contacts"""
+    user_id = get_current_user_id()
+    user_type = get_user_type()
+    contacts = get_message_contacts(user_id, user_type)
+    other_id = request.args.get('with', type=int)
+
+    if request.method == 'POST':
+        receiver_id = request.form.get('receiver_id', type=int)
+        body = request.form.get('message', '').strip()
+        if receiver_id and body:
+            result = send_message(user_id, receiver_id, body)
+            if result['success']:
+                flash('Message sent', 'success')
+            else:
+                flash('Failed to send message', 'error')
+        return redirect(url_for('messages_page', **{'with': receiver_id} if receiver_id else {}))
+
+    conversation = []
+    active_contact = None
+    if other_id:
+        active_contact = get_user_by_id(other_id)
+        if active_contact:
+            conversation = get_messages_between(user_id, other_id)
+            mark_messages_read(user_id, other_id)
+
+    return render_template(
+        'messages.html',
+        contacts=contacts,
+        conversation=conversation,
+        active_contact=active_contact,
+        other_id=other_id
+    )
+
+@app.route('/reviews')
+@login_required
+def reviews_page():
+    """Reviews list (written by client or received by worker)"""
+    user_id = get_current_user_id()
+    user_type = get_user_type()
+    pending = []
+    reviews = []
+    if user_type == 'worker':
+        worker = get_worker_by_user_id(user_id)
+        if worker:
+            reviews = get_worker_reviews(worker['id'], limit=50)
+    else:
+        pending = get_pending_reviews(user_id)
+        reviews = get_reviews_by_user(user_id, limit=50)
+    return render_template(
+        'reviews_list.html',
+        reviews=reviews,
+        pending_reviews=pending,
+        user_type=user_type
+    )
+
+@app.route('/favorites', methods=['GET', 'POST'])
+@login_required
+@user_type_required('user')
+def favorites_page():
+    """Saved favorite workers"""
+    user_id = get_current_user_id()
+    if request.method == 'POST':
+        action = request.form.get('action')
+        worker_id = request.form.get('worker_id', type=int)
+        if worker_id:
+            if action == 'remove':
+                remove_favorite(user_id, worker_id)
+                flash('Removed from favorites', 'success')
+            elif action == 'add':
+                add_favorite(user_id, worker_id)
+                flash('Added to favorites', 'success')
+        return redirect(url_for('favorites_page'))
+    favorites = get_user_favorites(user_id)
+    return render_template('favorites.html', favorites=favorites)
+
+@app.route('/profile')
+@login_required
+def profile_page():
+    """View profile"""
+    user_id = get_current_user_id()
+    user = get_user_by_id(user_id)
+    worker = get_worker_by_user_id(user_id) if get_user_type() == 'worker' else None
+    stats = None
+    if get_user_type() == 'worker' and worker:
+        stats = get_worker_stats(worker['id'])
+    elif get_user_type() == 'user':
+        stats = get_user_stats(user_id)
+    return render_template('profile.html', user=user, worker=worker, stats=stats)
+
+@app.route('/settings', methods=['GET', 'POST'])
+@login_required
+def settings_page():
+    """Account settings"""
+    user_id = get_current_user_id()
+    user_type = get_user_type()
+    user = get_user_by_id(user_id)
+    worker = get_worker_by_user_id(user_id) if user_type == 'worker' else None
+
+    if request.method == 'POST':
+        form_type = request.form.get('form_type', 'profile')
+        if form_type == 'profile':
+            name = request.form.get('name', '').strip()
+            phone = request.form.get('phone', '').strip()
+            if not name or not phone:
+                flash('Name and phone are required', 'error')
+            elif update_user_profile(user_id, name, phone):
+                session['user_name'] = name
+                flash('Profile updated', 'success')
+            else:
+                flash('Could not update profile', 'error')
+            if user_type == 'worker':
+                service_area = request.form.get('service_area', '').strip()
+                skills = request.form.get('skills', '').strip()
+                experience = request.form.get('experience', 0)
+                bio = request.form.get('bio', '').strip()
+                if service_area and skills:
+                    try:
+                        update_worker_profile(user_id, service_area, skills, experience, bio or None)
+                    except (ValueError, TypeError):
+                        flash('Invalid experience value', 'error')
+        elif form_type == 'password':
+            current = request.form.get('current_password', '')
+            new_pass = request.form.get('new_password', '')
+            confirm = request.form.get('confirm_password', '')
+            stored = user['password']
+            if stored.startswith('$2y$'):
+                stored = '$2b$' + stored[4:]
+            if not bcrypt.checkpw(current.encode(), stored.encode()):
+                flash('Current password is incorrect', 'error')
+            elif len(new_pass) < 6:
+                flash('New password must be at least 6 characters', 'error')
+            elif new_pass != confirm:
+                flash('Passwords do not match', 'error')
+            else:
+                new_hash = bcrypt.hashpw(new_pass.encode(), bcrypt.gensalt()).decode()
+                from db_connection import get_db_connection, get_db_cursor
+                conn = get_db_connection()
+                try:
+                    cur = get_db_cursor(conn)
+                    cur.execute("UPDATE users SET password = %s WHERE id = %s", (new_hash, user_id))
+                    conn.commit()
+                    flash('Password updated', 'success')
+                except Exception:
+                    conn.rollback()
+                    flash('Could not update password', 'error')
+                finally:
+                    cur.close()
+                    conn.close()
+        return redirect(url_for('settings_page'))
+
+    return render_template('settings.html', user=user, worker=worker, user_type=user_type)
 
 # ==================== ERROR HANDLERS ====================
 

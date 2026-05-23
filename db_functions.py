@@ -597,6 +597,208 @@ def is_favorite(user_id, worker_id):
         cur.close()
         conn.close()
 
+# ==================== USER PROFILE ====================
+
+def get_user_by_id(user_id):
+    """Get user record by id"""
+    conn = get_db_connection()
+    try:
+        cur = get_db_cursor(conn)
+        cur.execute("SELECT * FROM users WHERE id = %s", (user_id,))
+        row = cur.fetchone()
+        return dict(row) if row else None
+    finally:
+        cur.close()
+        conn.close()
+
+def update_user_profile(user_id, name, phone):
+    """Update client/worker account fields"""
+    conn = get_db_connection()
+    try:
+        cur = get_db_cursor(conn)
+        cur.execute(
+            "UPDATE users SET name = %s, phone = %s, updated_at = CURRENT_TIMESTAMP WHERE id = %s",
+            (name, phone, user_id)
+        )
+        conn.commit()
+        return True
+    except Exception:
+        conn.rollback()
+        return False
+    finally:
+        cur.close()
+        conn.close()
+
+def update_worker_profile(user_id, service_area, skills, experience, bio=None):
+    """Update worker-specific fields"""
+    conn = get_db_connection()
+    try:
+        cur = get_db_cursor(conn)
+        cur.execute(
+            """UPDATE workers SET service_area = %s, skills = %s, experience = %s, bio = %s,
+               updated_at = CURRENT_TIMESTAMP WHERE user_id = %s""",
+            (service_area, skills, int(experience), bio, user_id)
+        )
+        conn.commit()
+        return cur.rowcount > 0
+    except Exception:
+        conn.rollback()
+        return False
+    finally:
+        cur.close()
+        conn.close()
+
+def get_reviews_by_user(user_id, limit=50):
+    """Reviews written by a client"""
+    conn = get_db_connection()
+    try:
+        cur = get_db_cursor(conn)
+        cur.execute(
+            """SELECT r.*, wu.name as worker_name, b.title as booking_title
+               FROM reviews r
+               JOIN workers w ON r.worker_id = w.id
+               JOIN users wu ON w.user_id = wu.id
+               JOIN bookings b ON r.booking_id = b.id
+               WHERE r.user_id = %s
+               ORDER BY r.created_at DESC
+               LIMIT %s""",
+            (user_id, limit)
+        )
+        return [dict(row) for row in cur.fetchall()]
+    finally:
+        cur.close()
+        conn.close()
+
+# ==================== MESSAGES ====================
+
+def get_message_contacts(user_id, user_type):
+    """People the user can message (from bookings and past chats)"""
+    conn = get_db_connection()
+    try:
+        cur = get_db_cursor(conn)
+        if user_type == 'worker':
+            worker = get_worker_by_user_id(user_id)
+            if not worker:
+                return []
+            cur.execute(
+                """SELECT DISTINCT u.id, u.name, u.user_type
+                   FROM users u
+                   WHERE u.id != %s AND (
+                       u.id IN (SELECT b.user_id FROM bookings b WHERE b.worker_id = %s)
+                       OR u.id IN (SELECT sender_id FROM messages WHERE receiver_id = %s)
+                       OR u.id IN (SELECT receiver_id FROM messages WHERE sender_id = %s)
+                   )
+                   ORDER BY u.name""",
+                (user_id, worker['id'], user_id, user_id)
+            )
+        else:
+            cur.execute(
+                """SELECT DISTINCT u.id, u.name, u.user_type
+                   FROM users u
+                   WHERE u.id != %s AND (
+                       u.id IN (
+                           SELECT w.user_id FROM bookings b
+                           JOIN workers w ON b.worker_id = w.id
+                           WHERE b.user_id = %s
+                       )
+                       OR u.id IN (SELECT sender_id FROM messages WHERE receiver_id = %s)
+                       OR u.id IN (SELECT receiver_id FROM messages WHERE sender_id = %s)
+                   )
+                   ORDER BY u.name""",
+                (user_id, user_id, user_id, user_id)
+            )
+        return [dict(row) for row in cur.fetchall()]
+    finally:
+        cur.close()
+        conn.close()
+
+def get_messages_between(user_id, other_id, limit=100):
+    """Conversation between two users"""
+    conn = get_db_connection()
+    try:
+        cur = get_db_cursor(conn)
+        cur.execute(
+            """SELECT m.*, s.name as sender_name
+               FROM messages m
+               JOIN users s ON m.sender_id = s.id
+               WHERE (m.sender_id = %s AND m.receiver_id = %s)
+                  OR (m.sender_id = %s AND m.receiver_id = %s)
+               ORDER BY m.created_at ASC
+               LIMIT %s""",
+            (user_id, other_id, other_id, user_id, limit)
+        )
+        return [dict(row) for row in cur.fetchall()]
+    finally:
+        cur.close()
+        conn.close()
+
+def send_message(sender_id, receiver_id, body, booking_id=None):
+    """Send a chat message"""
+    conn = get_db_connection()
+    try:
+        cur = get_db_cursor(conn)
+        cur.execute(
+            """INSERT INTO messages (sender_id, receiver_id, booking_id, message)
+               VALUES (%s, %s, %s, %s) RETURNING id""",
+            (sender_id, receiver_id, booking_id, body)
+        )
+        msg_id = cur.fetchone()['id']
+        conn.commit()
+        create_notification(
+            receiver_id, 'New message',
+            'You have a new message.',
+            'message', '/messages?with=' + str(sender_id)
+        )
+        return {'success': True, 'message_id': msg_id}
+    except Exception as e:
+        conn.rollback()
+        return {'success': False, 'message': str(e)}
+    finally:
+        cur.close()
+        conn.close()
+
+def mark_messages_read(user_id, other_id):
+    """Mark incoming messages from other user as read"""
+    conn = get_db_connection()
+    try:
+        cur = get_db_cursor(conn)
+        cur.execute(
+            "UPDATE messages SET is_read = TRUE WHERE receiver_id = %s AND sender_id = %s AND is_read = FALSE",
+            (user_id, other_id)
+        )
+        conn.commit()
+    finally:
+        cur.close()
+        conn.close()
+
+def count_unread_messages(user_id):
+    """Count unread messages for user"""
+    conn = get_db_connection()
+    try:
+        cur = get_db_cursor(conn)
+        cur.execute(
+            "SELECT COUNT(*) as count FROM messages WHERE receiver_id = %s AND is_read = FALSE",
+            (user_id,)
+        )
+        return cur.fetchone()['count']
+    finally:
+        cur.close()
+        conn.close()
+
+def mark_all_notifications_read(user_id):
+    """Mark all notifications read for user"""
+    conn = get_db_connection()
+    try:
+        cur = get_db_cursor(conn)
+        cur.execute(
+            "UPDATE notifications SET is_read = TRUE WHERE user_id = %s AND is_read = FALSE",
+            (user_id,)
+        )
+        conn.commit()
+    finally:
+        cur.close()
+        conn.close()
+
 # ==================== HELPER FUNCTIONS ====================
 
 def get_initials(name):

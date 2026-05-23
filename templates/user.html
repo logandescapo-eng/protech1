@@ -623,32 +623,33 @@
             </div>
         </a>
         <div class="top-nav-right">
-            <div class="search-bar">
+            <form class="search-bar" action="{{ url_for('browse_workers') }}" method="GET" style="display:flex;align-items:center;">
                 <svg class="search-icon" viewBox="0 0 24 24">
                     <circle cx="11" cy="11" r="8"/>
                     <path d="m21 21-4.35-4.35"/>
                 </svg>
-                <input type="text" placeholder="Search for services or professionals...">
-            </div>
-            <button class="icon-btn">
+                <input type="text" name="skill" placeholder="Search for services or professionals...">
+            </form>
+            <a href="{{ url_for('notifications_page') }}" class="icon-btn" style="text-decoration:none;color:inherit;">
                 <svg viewBox="0 0 24 24">
                     <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
                     <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
                 </svg>
-                <span class="notification-badge"></span>
-            </button>
-            <button class="icon-btn">
+                {% if unread_notifications %}<span class="notification-badge">{{ unread_notifications }}</span>{% endif %}
+            </a>
+            <a href="{{ url_for('messages_page') }}" class="icon-btn" style="text-decoration:none;color:inherit;">
                 <svg viewBox="0 0 24 24">
                     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                 </svg>
-            </button>
-            <div class="user-menu">
+                {% if unread_messages %}<span class="notification-badge">{{ unread_messages }}</span>{% endif %}
+            </a>
+            <a href="{{ url_for('profile_page') }}" class="user-menu" style="text-decoration:none;color:inherit;">
                 <div class="user-avatar">{{ initials }}</div>
                 <div class="user-info">
                     <div class="user-name">{{ user_name }}</div>
                     <div class="user-role">Client</div>
                 </div>
-            </div>
+            </a>
         </div>
     </nav>
 
@@ -687,22 +688,28 @@
                         </a>
                     </li>
                     <li class="sidebar-item">
-                        <svg viewBox="0 0 24 24">
-                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                        </svg>
-                        Messages
+                        <a href="{{ url_for('messages_page') }}" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 0.75rem;">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                            </svg>
+                            Messages
+                        </a>
                     </li>
                     <li class="sidebar-item">
-                        <svg viewBox="0 0 24 24">
-                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                        </svg>
-                        Reviews
+                        <a href="{{ url_for('reviews_page') }}" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 0.75rem;">
+                            <svg viewBox="0 0 24 24">
+                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                            </svg>
+                            Reviews
+                        </a>
                     </li>
                     <li class="sidebar-item">
-                        <svg viewBox="0 0 24 24">
-                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                        </svg>
-                        Favorites
+                        <a href="{{ url_for('favorites_page') }}" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 0.75rem;">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                            </svg>
+                            Favorites
+                        </a>
                     </li>
                 </ul>
             </div>
@@ -710,21 +717,25 @@
                 <div class="sidebar-title">Account</div>
                 <ul class="sidebar-menu">
                     <li class="sidebar-item">
-                        <svg viewBox="0 0 24 24">
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                            <circle cx="12" cy="7" r="4"/>
-                        </svg>
-                        Profile
+                        <a href="{{ url_for('profile_page') }}" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 0.75rem;">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                <circle cx="12" cy="7" r="4"/>
+                            </svg>
+                            Profile
+                        </a>
                     </li>
                     <li class="sidebar-item">
-                        <svg viewBox="0 0 24 24">
-                            <circle cx="12" cy="12" r="3"/>
-                            <path d="M12 1v6m0 6v6"/>
-                            <path d="m4.93 4.93 4.24 4.24m5.66 5.66 4.24 4.24"/>
-                            <path d="M1 12h6m6 0h6"/>
-                            <path d="m4.93 19.07 4.24-4.24m5.66-5.66 4.24-4.24"/>
-                        </svg>
-                        Settings
+                        <a href="{{ url_for('settings_page') }}" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 0.75rem;">
+                            <svg viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="3"/>
+                                <path d="M12 1v6m0 6v6"/>
+                                <path d="m4.93 4.93 4.24 4.24m5.66 5.66 4.24 4.24"/>
+                                <path d="M1 12h6m6 0h6"/>
+                                <path d="m4.93 19.07 4.24-4.24m5.66-5.66 4.24-4.24"/>
+                            </svg>
+                            Settings
+                        </a>
                     </li>
                     <li class="sidebar-item">
                         <a href="{{ url_for('logout') }}" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 0.75rem;">
@@ -912,7 +923,7 @@
                             </div>
                         </a>
 
-                        <a href="#" class="action-btn">
+                        <a href="{{ url_for('messages_page') }}" class="action-btn">
                             <div class="action-icon">
                                 <svg viewBox="0 0 24 24">
                                     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
@@ -936,17 +947,15 @@
                             </div>
                         </a>
 
-                        <a href="#" class="action-btn">
+                        <a href="{{ url_for('favorites_page') }}" class="action-btn">
                             <div class="action-icon">
                                 <svg viewBox="0 0 24 24">
-                                    <circle cx="12" cy="12" r="10"/>
-                                    <path d="M12 16v-4"/>
-                                    <path d="M12 8h.01"/>
+                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
                                 </svg>
                             </div>
                             <div class="action-text">
-                                <h3>Help & Support</h3>
-                                <p>Get assistance</p>
+                                <h3>Favorites</h3>
+                                <p>Saved professionals</p>
                             </div>
                         </a>
                     </div>

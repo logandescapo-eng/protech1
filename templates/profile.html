@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - ProTech</title>
+    {% include 'partials/app_page_styles.html' %}
+</head>
+<body>
+    <div class="wrap">
+        {% include 'partials/subpage_nav.html' %}
+        <h1>Profile</h1>
+        <p class="sub">Your account overview</p>
+
+        <div class="card">
+            <h3>{{ user.name }}</h3>
+            <p class="meta">{{ user.email }}</p>
+            <p class="meta">Phone: {{ user.phone }}</p>
+            <p class="meta">Account type: {{ user.user_type|title }}</p>
+            <p class="meta">Member since {{ user.created_at.strftime('%B %Y') if user.created_at else '—' }}</p>
+            <p style="margin-top:1rem;"><a href="{{ url_for('settings_page') }}" class="btn btn-primary">Edit in Settings</a></p>
+        </div>
+
+        {% if worker %}
+        <div class="card">
+            <h3>Professional profile</h3>
+            <p><strong>Service area:</strong> {{ worker.service_area }}</p>
+            <p><strong>Skills:</strong> {{ worker.skills }}</p>
+            <p><strong>Experience:</strong> {{ worker.experience }} years</p>
+            <p><strong>Rate:</strong> ${{ "%.0f"|format(worker.hourly_rate or 0) }}/hr</p>
+            <p><strong>Rating:</strong> ★ {{ "%.1f"|format(worker.rating or 0) }} ({{ worker.total_reviews or 0 }} reviews)</p>
+            {% if worker.bio %}<p><strong>Bio:</strong> {{ worker.bio }}</p>{% endif %}
+        </div>
+        {% endif %}
+
+        {% if stats %}
+        <div class="card">
+            <h3>Stats</h3>
+            {% if user.user_type == 'worker' %}
+            <p>Pending requests: {{ stats.pending_requests }}</p>
+            <p>Scheduled jobs: {{ stats.scheduled_jobs }}</p>
+            <p>Monthly earnings: ${{ "%.0f"|format(stats.monthly_earnings) }}</p>
+            {% else %}
+            <p>Active bookings: {{ stats.active_bookings }}</p>
+            <p>Completed services: {{ stats.completed_services }}</p>
+            <p>Total spent: ${{ "%.0f"|format(stats.total_spent) }}</p>
+            <p>Reviews given: {{ stats.reviews_given }}</p>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>

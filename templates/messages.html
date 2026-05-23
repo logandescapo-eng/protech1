@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messages - ProTech</title>
+    {% include 'partials/app_page_styles.html' %}
+</head>
+<body>
+    <div class="wrap" style="max-width:1000px;">
+        {% include 'partials/subpage_nav.html' %}
+        <h1>Messages</h1>
+        <p class="sub">Chat with clients or professionals from your bookings</p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class="flash {{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="grid-2">
+            <div class="card">
+                <h3 style="margin-bottom:0.75rem;">Contacts</h3>
+                {% if contacts %}
+                    {% for c in contacts %}
+                    <a href="{{ url_for('messages_page', with=c.id) }}" class="contact{% if other_id == c.id %} active{% endif %}">
+                        {{ c.name }}
+                        <span class="meta">({{ c.user_type }})</span>
+                    </a>
+                    {% endfor %}
+                {% else %}
+                    <p class="meta">No contacts yet. Book a service or get a booking request first.</p>
+                {% endif %}
+            </div>
+
+            <div class="card">
+                {% if active_contact %}
+                <h3 style="margin-bottom:1rem;">Chat with {{ active_contact.name }}</h3>
+                <div style="min-height:200px;margin-bottom:1rem;">
+                    {% if conversation %}
+                        {% for m in conversation %}
+                        <div class="msg {% if m.sender_id == session.user_id %}mine{% else %}theirs{% endif %}">
+                            <div>{{ m.message }}</div>
+                            <div class="msg-meta">{{ m.sender_name }} · {{ m.created_at.strftime('%b %d, %I:%M %p') if m.created_at else '' }}</div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="meta">No messages yet. Say hello!</p>
+                    {% endif %}
+                </div>
+                <form method="POST">
+                    <input type="hidden" name="receiver_id" value="{{ active_contact.id }}">
+                    <div class="form-group">
+                        <label for="message">Your message</label>
+                        <textarea id="message" name="message" required placeholder="Type a message..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Send</button>
+                </form>
+                {% else %}
+                <p class="meta" style="padding:2rem 0;text-align:center;">Select a contact to start chatting.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</body>
+</html>

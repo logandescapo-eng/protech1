@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifications - ProTech</title>
+    {% include 'partials/app_page_styles.html' %}
+</head>
+<body>
+    <div class="wrap">
+        {% include 'partials/subpage_nav.html' %}
+        <h1>Notifications</h1>
+        <p class="sub">Booking updates and alerts</p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class="flash {{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% if notifications %}
+        <p style="margin-bottom:1rem;"><a href="{{ url_for('notifications_page', mark_all=1) }}" class="btn btn-outline">Mark all as read</a></p>
+        <div class="card">
+            {% for n in notifications %}
+            <div class="list-item{% if not n.is_read %} unread{% endif %}">
+                <h3>{{ n.title }}{% if not n.is_read %}<span class="badge">new</span>{% endif %}</h3>
+                <p class="meta">{{ n.message }}</p>
+                <p class="meta">{{ n.created_at.strftime('%b %d, %Y %I:%M %p') if n.created_at else '' }} · {{ n.type }}</p>
+                <div class="actions-row">
+                    {% if not n.is_read %}
+                    <a href="{{ url_for('notifications_page', read=n.id) }}" class="btn btn-outline">Mark read</a>
+                    {% endif %}
+                    {% if n.type == 'booking' %}
+                    <a href="{{ url_for('my_bookings') }}" class="btn btn-primary">View bookings</a>
+                    {% elif n.type == 'message' %}
+                    <a href="{{ url_for('messages_page') }}" class="btn btn-primary">Open messages</a>
+                    {% elif n.type == 'review' %}
+                    <a href="{{ url_for('reviews_page') }}" class="btn btn-primary">View reviews</a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty card">
+            <p>No notifications yet.</p>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>

@@ -1,0 +1,10 @@
+<div class="nav">
+    <a href="{{ layout_dashboard_url }}">← Dashboard</a>
+    <a href="{{ url_for('notifications_page') }}">Notifications{% if layout_unread_notifications %} ({{ layout_unread_notifications }}){% endif %}</a>
+    <a href="{{ url_for('messages_page') }}">Messages{% if layout_unread_messages %} ({{ layout_unread_messages }}){% endif %}</a>
+    <a href="{{ url_for('my_bookings') }}">Bookings</a>
+    <a href="{{ url_for('reviews_page') }}">Reviews</a>
+    {% if layout_user_type == 'user' %}<a href="{{ url_for('favorites_page') }}">Favorites</a>{% endif %}
+    <a href="{{ url_for('profile_page') }}">Profile</a>
+    <a href="{{ url_for('settings_page') }}">Settings</a>
+</div>

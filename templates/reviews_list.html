@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reviews - ProTech</title>
+    {% include 'partials/app_page_styles.html' %}
+</head>
+<body>
+    <div class="wrap">
+        {% include 'partials/subpage_nav.html' %}
+        <h1>Reviews</h1>
+        <p class="sub">{% if user_type == 'worker' %}Reviews from your clients{% else %}Your reviews and pending feedback{% endif %}</p>
+
+        {% if user_type != 'worker' and pending_reviews %}
+        <div class="card">
+            <h3 style="margin-bottom:0.75rem;">Pending reviews</h3>
+            {% for b in pending_reviews %}
+            <div class="list-item">
+                <h3>{{ b.title }}</h3>
+                <p class="meta">With {{ b.worker_name }} · completed</p>
+                <a href="{{ url_for('review', booking_id=b.id) }}" class="btn btn-primary">Leave review</a>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="card">
+            <h3 style="margin-bottom:0.75rem;">{% if user_type == 'worker' %}Received reviews{% else %}Reviews you wrote{% endif %}</h3>
+            {% if reviews %}
+                {% for r in reviews %}
+                <div class="list-item">
+                    <h3><span class="rating">★ {{ r.rating }}</span>
+                        {% if user_type == 'worker' %}{{ r.reviewer_name }}{% else %}{{ r.worker_name }}{% endif %}
+                    </h3>
+                    <p class="meta">{{ r.booking_title }} · {{ r.created_at.strftime('%b %d, %Y') if r.created_at else '' }}</p>
+                    {% if r.comment %}<p>{{ r.comment }}</p>{% endif %}
+                </div>
+                {% endfor %}
+            {% else %}
+                <p class="meta">No reviews yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>
