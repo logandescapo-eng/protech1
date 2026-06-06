@@ -95,7 +95,8 @@ def _render_landing_page(title, subtitle, content_template, cta_label=None, cta_
 
 @app.route('/health')
 def health():
-    """Health check for Railway (includes DB connectivity)."""
+    """Liveness check for Railway — always 200 if the app process is up."""
+    payload = {'status': 'ok', 'app': 'protech'}
     try:
         from db_connection import get_db_connection
         conn = get_db_connection()
@@ -103,9 +104,11 @@ def health():
         cur.execute('SELECT 1')
         cur.close()
         conn.close()
-        return {'status': 'ok', 'database': 'connected'}, 200
+        payload['database'] = 'connected'
     except Exception as e:
-        return {'status': 'error', 'database': str(e)}, 503
+        payload['database'] = 'disconnected'
+        payload['database_error'] = str(e)
+    return payload, 200
 
 @app.route('/')
 def index():
