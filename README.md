@@ -16,7 +16,12 @@ A marketplace web application connecting clients with professional service worke
 | **Render Blueprint** | One-click deploy from `render.yaml` |
 | **GitHub Actions → Railway** | Same as Railway, triggered by workflow after you add secrets |
 
-After deploy, paste your public URL in the repo **About** section (Settings → General → Website) so the GitHub link opens the real app.
+After deploy:
+
+1. Set your public URL in **`live-config.js`** (`window.PROTECH_LIVE_URL = 'https://your-app.up.railway.app'`) so [GitHub Pages](https://logandescapo-eng.github.io/protech1/) login links redirect to the live app.
+2. Paste the same URL in the repo **About** section (Settings → General → Website).
+
+> GitHub Pages only hosts static files. The full Flask app (auth, bookings, escrow) runs on Railway or Render. Pages acts as the public entry point once `live-config.js` is set.
 
 ### GitHub Actions (CI + optional Railway deploy)
 

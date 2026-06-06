@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="protech-pages-root" content="/protech1/">
+    <title>ProTech — Page not found</title>
+    <script src="live-config.js"></script>
+    <script src="static-gateway.js"></script>
+    <script>
+        (function () {
+            var base = (window.PROTECH_LIVE_URL || '').trim().replace(/\/$/, '');
+            if (!base) {
+                return;
+            }
+            var path = window.location.pathname.replace(/^\/protech1/, '') || '/';
+            window.location.replace(base + path + window.location.search + window.location.hash);
+        })();
+    </script>
+    <style>
+        body { font-family: system-ui, sans-serif; max-width: 32rem; margin: 4rem auto; padding: 0 1rem; color: #111827; }
+        a { color: #2563eb; }
+    </style>
+</head>
+<body>
+    <h1>Page not found</h1>
+    <p>This path is not available on the GitHub Pages preview.</p>
+    <p><a href="index.html">Back to home</a> · <a href="#" onclick="redirectToApp('/auth'); return false;">Sign in on live app</a></p>
+</body>
+</html>
