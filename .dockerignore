@@ -50,3 +50,9 @@ test_*.py
 # Database
 *.db
 *.sqlite
+
+# Local / docs (not needed in production image)
+documentattion/
+bindmount-apps/
+*.doc
+*.docx

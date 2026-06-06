@@ -34,13 +34,15 @@ else:
     DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
 # Flask configuration
-_on_railway = bool(
+_on_cloud = bool(
     os.getenv('RAILWAY_ENVIRONMENT')
     or os.getenv('RAILWAY_PUBLIC_DOMAIN')
+    or os.getenv('RENDER')
+    or os.getenv('RENDER_SERVICE_ID')
     or os.getenv('DATABASE_URL')
 )
 SECRET_KEY = os.getenv('SECRET_KEY', 'dev-secret-change-in-production')
-DEBUG = os.getenv('FLASK_DEBUG', 'false' if _on_railway else 'true').lower() == 'true'
+DEBUG = os.getenv('FLASK_DEBUG', 'false' if _on_cloud else 'true').lower() == 'true'
 
 # Escrow (platform holds funds until job completion)
 ESCROW_PLATFORM_FEE_PERCENT = float(os.getenv('ESCROW_PLATFORM_FEE_PERCENT', '5'))

@@ -1,34 +1,25 @@
+# Render Blueprint — connect GitHub repo at https://dashboard.render.com
+# After deploy, your live URL will be like https://protech-web.onrender.com
+
 services:
   - type: web
     name: protech-web
-    env: docker
+    runtime: docker
+    plan: free
     dockerfilePath: ./Dockerfile
     dockerContext: .
+    healthCheckPath: /health
     envVars:
-      - key: DB_HOST
+      - key: DATABASE_URL
         fromDatabase:
           name: protech-db
-          property: host
-      - key: DB_PORT
-        fromDatabase:
-          name: protech-db
-          property: port
-      - key: DB_NAME
-        fromDatabase:
-          name: protech-db
-          property: database
-      - key: DB_USER
-        fromDatabase:
-          name: protech-db
-          property: user
-      - key: DB_PASS
-        fromDatabase:
-          name: protech-db
-          property: password
-    healthCheckPath: /
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: FLASK_DEBUG
+        value: "False"
 
 databases:
   - name: protech-db
     databaseName: protech_db
-    user: postgres
     plan: free

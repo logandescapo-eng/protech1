@@ -35,7 +35,7 @@ app = Flask(__name__)
 app.secret_key = SECRET_KEY
 app.debug = DEBUG
 
-if os.getenv('RAILWAY_ENVIRONMENT') or os.getenv('DATABASE_URL'):
+if os.getenv('RAILWAY_ENVIRONMENT') or os.getenv('RENDER') or os.getenv('DATABASE_URL'):
     from werkzeug.middleware.proxy_fix import ProxyFix
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
     app.config['SESSION_COOKIE_SECURE'] = True

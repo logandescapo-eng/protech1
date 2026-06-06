@@ -4,7 +4,41 @@ A marketplace web application connecting clients with professional service worke
 
 <img width="1586" height="744" alt="Capture5" src="https://github.com/user-attachments/assets/04e5a479-f0e5-4b9d-8fc2-391dd7d4cf3f" />
 
-**Live Application:** Use your current Railway public URL (Settings → Networking on the web service). The old `web-production-e8d37` URL may be inactive if the project was redeployed.
+**Live Application:** This is a Flask app — it does **not** run on `github.com/...` alone. Use your **Railway** or **Render** public URL (see below). The old `web-production-e8d37` URL is inactive if that service was removed.
+
+---
+
+## GitHub → live site (choose one)
+
+| Method | What you get |
+|--------|----------------|
+| **Railway + GitHub** (recommended) | Auto-deploy on every push to `main` |
+| **Render Blueprint** | One-click deploy from `render.yaml` |
+| **GitHub Actions → Railway** | Same as Railway, triggered by workflow after you add secrets |
+
+After deploy, paste your public URL in the repo **About** section (Settings → General → Website) so the GitHub link opens the real app.
+
+### GitHub Actions (CI + optional Railway deploy)
+
+On every push to `main`, **CI** runs (`.github/workflows/ci.yml`) — imports the app and checks `/health`.
+
+To enable **automatic Railway deploy** from GitHub:
+
+1. Railway → your **web** service → **Settings** → copy **Service ID**.
+2. Railway → **Account Settings** → **Tokens** → create a token.
+3. GitHub repo → **Settings** → **Secrets and variables** → **Actions** → add:
+   - `RAILWAY_TOKEN` — token from step 2
+   - `RAILWAY_SERVICE_ID` — service ID from step 1
+4. Push to `main` or run **Actions** → **Deploy to Railway** → **Run workflow**.
+
+Without those secrets, CI still passes; deploy is skipped with a notice in the workflow log.
+
+### Deploy to Render (alternative)
+
+1. Go to [dashboard.render.com](https://dashboard.render.com) → **New** → **Blueprint**.
+2. Connect repo `logandescapo-eng/protech1` — Render reads `render.yaml`.
+3. After deploy, open **protech-web** → copy the `.onrender.com` URL.
+4. Run `init_db.py` and `migrate_escrow.py` with the Render Postgres **External** connection string.
 
 ---
 
