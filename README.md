@@ -10,25 +10,60 @@ A marketplace web application connecting clients with professional service worke
 
 ## Deploy to Railway (live site)
 
-1. **Push code** — Railway redeploys automatically when connected to GitHub (`main` branch).
-2. **Postgres service** — Add PostgreSQL in the same Railway project.
-3. **Web service variables:**
+> **Old links like `web-production-e8d37.up.railway.app` will not work** if that project/service was removed. You must use the URL from **your** Railway project (step 4).
 
-   | Variable | Value |
-   |----------|--------|
-   | `DATABASE_URL` | `${{ Postgres.DATABASE_URL }}` |
-   | `SECRET_KEY` | long random string |
-   | `FLASK_DEBUG` | `False` |
+### A. Create or reconnect the project
 
-4. **Initialize the database** (once), from your PC with the Postgres **public** `DATABASE_URL`:
+1. Go to [railway.app](https://railway.app) → **New Project**.
+2. **Deploy from GitHub repo** → select `logandescapo-eng/protech1` → branch `main`.
+3. Railway creates a **web** service from the `Dockerfile`.
 
-   ```bash
-   python init_db.py "YOUR_DATABASE_URL"
-   ```
+### B. Add PostgreSQL
 
-5. Open the web service **public URL** → `/auth` → sign up or use demo logins below.
+1. In the same project: **+ New** → **Database** → **PostgreSQL**.
 
-Health check: `https://YOUR-URL/health` should return `{"status":"ok","database":"connected"}`.
+### C. Configure the web service
+
+**Variables** (click the **web** service, not Postgres):
+
+| Variable | Value |
+|----------|--------|
+| `DATABASE_URL` | `${{ Postgres.DATABASE_URL }}` |
+| `SECRET_KEY` | long random string |
+| `FLASK_DEBUG` | `False` |
+
+**Settings → Networking → Public Networking** → **Generate Domain**.
+
+Copy that URL — this is your live link (example: `https://protech1-production-xxxx.up.railway.app`).
+
+### D. Verify deploy
+
+1. **Deployments** tab should show **Success** (green).
+2. Open `https://YOUR-DOMAIN/health` — should include `"status":"ok"`.
+3. Open `https://YOUR-DOMAIN/` — landing page loads.
+
+If deploy fails, open **View logs** on the failed deployment.
+
+### E. Initialize database (once, on your PC)
+
+Postgres → **Connect** → copy **public** `DATABASE_URL`:
+
+```bash
+python init_db.py "YOUR_DATABASE_URL"
+python migrate_escrow.py "YOUR_DATABASE_URL"
+```
+
+Then test `https://YOUR-DOMAIN/auth` with demo logins below.
+
+### F. CLI deploy (optional)
+
+```bash
+npm i -g @railway/cli
+railway login
+railway link
+railway up
+railway domain
+```
 
 **Escrow on existing DB:** `python migrate_escrow.py "YOUR_DATABASE_URL"`
 

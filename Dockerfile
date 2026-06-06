@@ -19,6 +19,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY . .
 
+# Production entrypoint (Railway sets PORT; strip CRLF from Windows checkouts)
+RUN sed -i 's/\r$//' entrypoint.sh && chmod +x entrypoint.sh
+
 # Create non-root user for security
 RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
 USER appuser
@@ -29,6 +32,7 @@ EXPOSE 5000
 # Set environment variables
 ENV FLASK_APP=app.py
 ENV PYTHONUNBUFFERED=1
+ENV PORT=5000
 
-# Run the application
-CMD ["python", "app.py"]
+# Run with gunicorn (Railway injects PORT at runtime)
+CMD ["sh", "entrypoint.sh"]

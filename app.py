@@ -67,9 +67,15 @@ def inject_layout_context():
     }
     if is_logged_in():
         uid = session.get('user_id')
+        try:
+            unread_notifications = count_unread_notifications(uid)
+            unread_messages = count_unread_messages(uid)
+        except Exception:
+            unread_notifications = 0
+            unread_messages = 0
         ctx.update({
-            'layout_unread_notifications': count_unread_notifications(uid),
-            'layout_unread_messages': count_unread_messages(uid),
+            'layout_unread_notifications': unread_notifications,
+            'layout_unread_messages': unread_messages,
             'layout_user_type': get_user_type(),
         })
     else:
