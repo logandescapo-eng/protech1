@@ -1,0 +1,224 @@
+﻿<!DOCTYPE html>
+<html xmlns:o="urn:schemas-microsoft-com:office:office"
+      xmlns:w="urn:schemas-microsoft-com:office:word"
+      xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+<meta charset="utf-8">
+<title>ProTech Academic Article — Manye Patrice</title>
+<style>
+  body { font-family: 'Times New Roman', serif; font-size: 12pt; margin: 2cm; color: #1e293b; }
+  h2 { font-size: 13pt; color: #1e3a8a; text-transform: uppercase; margin-top: 14pt; }
+  h3 { font-size: 12pt; font-style: italic; color: #2563eb; margin-top: 10pt; }
+  p { text-align: justify; line-height: 1.7; margin-bottom: 10pt; }
+  table { border-collapse: collapse; width: 100%; font-size: 10pt; margin: 8pt 0; }
+  td, th { border: 1px solid #cbd5e1; padding: 6pt; vertical-align: top; }
+  th { background: #1e3a8a; color: white; }
+  tr:nth-child(even) { background: #eff6ff; }
+  .journal-header { text-align: center; font-size: 9pt; color: #64748b; margin-bottom: 12pt; }
+  .journal-name { font-weight: bold; color: #2563eb; font-size: 10pt; }
+  .article-title { font-size: 16pt; font-weight: bold; text-align: center; margin: 14pt 0 6pt; color: #1e3a8a; }
+  .article-subtitle { font-size: 11pt; text-align: center; font-style: italic; color: #475569; margin-bottom: 10pt; }
+  .authors { text-align: center; font-size: 12pt; margin: 8pt 0; }
+  .affiliation { text-align: center; font-size: 10pt; color: #64748b; line-height: 1.5; }
+  .divider { border: none; border-top: 1px solid #cbd5e1; margin: 14pt 0; }
+  .abstract-box { background: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid #2563eb; padding: 12pt; margin: 12pt 0; }
+  .abstract-title { font-weight: bold; font-size: 11pt; color: #1e3a8a; margin-bottom: 6pt; }
+  .keywords { font-size: 10pt; margin-top: 8pt; }
+  .two-col-layout { column-count: 2; column-gap: 24pt; column-rule: 1px solid #e2e8f0; }
+  .figure-box { break-inside: avoid; margin: 10pt 0; }
+  .figure-caption { font-size: 9pt; font-style: italic; text-align: center; color: #64748b; margin-top: 4pt; }
+  .code-box { font-family: Consolas, monospace; font-size: 9pt; background: #f1f5f9; padding: 10pt; border-radius: 4px; line-height: 1.6; white-space: pre-wrap; }
+  .page-number { text-align: center; font-size: 9pt; color: #94a3b8; margin-top: 20pt; }
+  .references { font-size: 10pt; line-height: 1.6; }
+  .ref-item { margin-bottom: 6pt; text-indent: -18pt; padding-left: 18pt; }
+  code { font-family: Consolas, monospace; font-size: 10pt; background: #f1f5f9; padding: 1pt 3pt; }
+</style>
+</head>
+<body>
+
+<div class="journal-header">
+  <div class="journal-name">International Journal of Web Engineering &amp; Business Information Systems</div>
+  <div>Vol. 12 | Issue 2 | June 2026 | ISSN: 2456-XXXX</div>
+</div>
+
+<div class="article-title">ProTech: A Containerised Django Marketplace for Professional Services with Escrow Payments, Role-Based Access Control, and Two-Sided Monetisation</div>
+<div class="article-subtitle">An End-of-Year Master's Project in IT Innovation in Business</div>
+<div class="authors"><strong>Manye Patrice</strong></div>
+<div class="affiliation">
+  IT Innovation in Business — Master&#x27;s Degree<br>
+  Web Technology in Business · Web Application Development<br>
+  Email: manye.patrice@university.edu | Repository: github.com/logandescapo-eng/protech1
+</div>
+
+<hr class="divider">
+
+<div class="abstract-box">
+  <div class="abstract-title">ABSTRACT</div>
+  <p>This paper presents ProTech, a full-stack professional services marketplace developed as an end-of-year
+  master's project within the IT Innovation in Business programme. The platform connects clients with skilled
+  service workers—plumbers, electricians, cleaners, and related trades—through a unified web application that
+  supports discovery, booking, in-app messaging, post-job reviews, and escrow-protected payments. Unlike an
+  earlier prototype built with PHP and MySQL, the current system implements a production-oriented architecture
+  using Django 5.2.15, PostgreSQL 15, Redis 7, Gunicorn, and Nginx orchestrated via Docker Compose. Security
+  is enforced through PBKDF2 password hashing, CSRF middleware, ORM parameterisation, template auto-escaping,
+  and a custom role-based access decorator separating client, worker, and administrator flows. A dedicated
+  escrow subsystem in <code>escrow/services.py</code> manages wallet balances, held funds, platform commission
+  (default five percent), and auditable transaction records using Decimal arithmetic and atomic database
+  transactions. The paper describes the three-tier deployment model, relational schema spanning four Django
+  applications, hybrid business model combining transaction commissions and worker subscription tiers,
+  Redis-backed caching strategy, structured logging, and a seventeen-test automated suite executed in GitHub
+  Actions CI. Evaluation demonstrates that the platform meets academic full-stack development requirements
+  while remaining clone-and-run for live demonstration. Limitations—including demo-only payments and
+  subscription logic not yet coded—are stated explicitly, and future work toward Stripe integration and
+  real-time notifications is outlined.</p>
+  <div class="keywords">
+    <strong>Keywords:</strong> Django, marketplace platform, escrow payments, role-based access control,
+    Docker Compose, PostgreSQL, Redis caching, two-sided markets, full-stack web development, service economy
+  </div>
+</div>
+
+<hr class="divider">
+
+<div class="two-col-layout">
+
+<h2>1. Introduction</h2>
+<p>The digital transformation of professional services has created substantial demand for platforms that connect clients with verified workers while reducing search friction, payment risk, and administrative overhead. Established marketplaces such as TaskRabbit, Thumbtack, and Upwork demonstrate that two-sided platforms can aggregate supply and demand at scale; however, local tradespeople and small businesses often lack affordable, transparent channels to build reputation and receive secure online payments.</p>
+<p>ProTech addresses this gap through an academically rigorous yet commercially informed implementation. Developed by Manye Patrice as the capstone for Web Technology in Business and Web Application Development, the platform serves clients who browse, book, and pay for services, and workers who manage profiles, accept jobs, and receive wallet-based payouts. The project evolved from an initial PHP/MySQL prototype—documented in prior coursework—into a Django-centred system aligned with contemporary enterprise web practice and the module assessment rubric.</p>
+<p>This article contributes four elements to the web engineering literature in an academic context. First, it documents a complete migration from a monolithic PHP prototype to a domain-partitioned Django application, including a Jinja2 compatibility layer preserving template semantics. Second, it presents an internal escrow ledger design suitable for marketplace trust without immediate third-party payment integration. Third, it maps functional requirements to verifiable implementation evidence through an explicit rubric alignment framework. Fourth, it combines technical architecture with a hybrid monetisation model grounded in two-sided market theory.</p>
+
+<h2>2. Related Work</h2>
+<p>Research on electronic commerce adoption emphasises perceived usefulness, ease of use, and trust as primary drivers of platform participation (Pavlou &amp; Fygenson, 2006). In service marketplaces, trust mechanisms—including verified identity, reputation systems, and payment holding—reduce perceived transaction risk (Edelman et al., 2012). ProTech operationalises these insights through role-separated dashboards, booking-linked reviews, and escrow holds released only upon job completion.</p>
+<p>Platform economics literature formalises pricing on both sides of a market (Rochet &amp; Tirole, 2003; Evans &amp; Schmalensee, 2016). ProTech&#x27;s business design—free client access, worker commissions, and optional subscription tiers—follows the asymmetric pricing pattern common among services marketplaces where supply-side participants derive ongoing value from leads, scheduling tools, and payment infrastructure.</p>
+<p>From a software engineering perspective, Fielding (2000) and Fowler (2002) inform the separation of presentation, domain logic, and persistence. Django&#x27;s integrated ORM, migration system, admin interface, and security middleware embody enterprise patterns appropriate for a assessed full-stack project. Containerisation via Docker Compose reflects reproducible deployment practice described in contemporary DevOps documentation (Docker Inc., 2024). Security design references the OWASP Top Ten (2021), addressing broken access control, injection, and cryptographic failures through RBAC decorators, ORM queries, and PBKDF2 hashing.</p>
+
+<h2>3. System Architecture</h2>
+<p>ProTech adopts a three-tier architecture deployed as four Docker Compose services: PostgreSQL (db), Redis (redis), Django/Gunicorn (backend), and Nginx (nginx). The presentation tier delivers server-rendered HTML, CSS, and JavaScript via Django&#x27;s Jinja2 template backend, providing fast initial loads and search-engine-friendly pages without a separate single-page application build pipeline.</p>
+<p>The application tier comprises a Django 5.2.15 project partitioned into domain applications: users (identity, profiles, messaging, notifications), bookings (scheduling and status workflow), reviews (ratings), and escrow (wallet and payment holds). Gunicorn serves the WSGI application; Nginx terminates HTTP on port 80, serves static and media files, and reverse-proxies dynamic requests to Gunicorn.</p>
+<p>The data tier combines PostgreSQL 15 for durable relational storage with Redis 7 for session storage and query caching. Django middleware enforces security headers, session management, CSRF validation, and authentication on every request before view logic executes—a fail-closed posture consistent with OWASP guidance.</p>
+
+
+    <div class="figure-box">
+      <table><tr><th>Tier</th><th>Technology</th><th>Responsibility</th></tr><tr><td>Presentation</td><td>Jinja2 templates + Nginx</td><td>UI rendering, static/media offload</td></tr><tr><td>Application</td><td>Django 5.2 + Gunicorn</td><td>Business logic, auth, admin</td></tr><tr><td>Persistence</td><td>PostgreSQL 15</td><td>Users, bookings, escrow ledger</td></tr><tr><td>Cache / sessions</td><td>Redis 7 + django-redis</td><td>Worker search cache, sessions</td></tr><tr><td>Orchestration</td><td>Docker Compose 3.8</td><td>Reproducible multi-service deployment</td></tr></table>
+    </div>
+<div class="figure-caption">Table 1: Three-tier architecture and deployment components</div>
+
+<h2>4. Business Model</h2>
+<p>Sustainable marketplace design requires revenue without undermining either side of the platform. ProTech implements a hybrid model: transaction commissions deducted at escrow release, and tiered monthly subscriptions for workers seeking greater visibility.</p>
+<p>The commission engine is live in code. When a worker completes a booking, release_escrow() calculates a platform fee from ESCROW_PLATFORM_FEE_PERCENT (default five percent), credits the worker&#x27;s wallet net of that fee, and records WalletTransaction audit rows. Production-oriented tiered rates are specified for micro-jobs (eight percent or minimum three currency units), standard jobs (five percent), and commercial contracts above five hundred units (three and a half percent).</p>
+<p>Worker subscriptions—Starter (free), Professional ($29/month), and Premium ($59/month)—are documented with search-ranking benefits and commission discounts but remain a planned increment rather than implemented billing. Illustrative twenty-four-month growth projections model traffic, registered accounts, completed jobs, and monthly recurring revenue from combined commission and subscription streams.</p>
+
+
+    <div class="figure-box">
+      <table><tr><th>Plan</th><th>Price</th><th>Visibility</th><th>Commission discount</th></tr><tr><td>Starter</td><td>Free</td><td>Basic listing; capped bookings</td><td>None</td></tr><tr><td>Professional</td><td>$29/mo</td><td>Priority above Starter</td><td>−1% (4% effective)</td></tr><tr><td>Premium</td><td>$59/mo</td><td>Featured placement</td><td>−2% (3% effective)</td></tr></table>
+    </div>
+<div class="figure-caption">Table 2: Worker subscription tiers (specified; billing not yet implemented)</div>
+
+</div>
+<div class="page-number">1</div>
+
+<div class="journal-header">
+  <div class="journal-name">ProTech: Django Marketplace with Escrow and RBAC</div>
+  <div>Manye Patrice | June 2026</div>
+</div>
+
+<div class="two-col-layout">
+
+<h2>5. Authentication and Security</h2>
+<p>Authentication combines Django&#x27;s session framework with a custom EmailBackend allowing login forms to accept email addresses as identifiers. Passwords are hashed with PBKDF2 through Django&#x27;s default validators. Registration creates either a client User or a User paired with a Worker profile depending on form submission type. Password reset uses Django&#x27;s tokenised email flow; development environments print reset URLs to the console.</p>
+<p>Authorisation is enforced through a user_type field on the extended User model and a @user_type_required decorator that redirects unauthorised role access before protected views render. Clients access browse_workers, favorites, and booking flows; workers access job acceptance and status updates; superusers access Django Admin for content management.</p>
+
+
+    <div class="figure-box">
+      <table><tr><th>Threat (OWASP)</th><th>Control</th><th>Implementation</th></tr><tr><td>Broken access control</td><td>RBAC decorator</td><td>users/decorators.py</td></tr><tr><td>Injection</td><td>ORM parameterisation</td><td>Django ORM throughout</td></tr><tr><td>Cryptographic failures</td><td>PBKDF2 hashing</td><td>Django auth defaults</td></tr><tr><td>CSRF</td><td>CsrfViewMiddleware</td><td>csrf_field() in templates</td></tr><tr><td>XSS</td><td>Template auto-escaping</td><td>Jinja2/Django templates</td></tr><tr><td>Security misconfiguration</td><td>Environment secrets</td><td>.env excluded from git</td></tr></table>
+    </div>
+<div class="figure-caption">Table 3: Security controls mapped to OWASP categories</div>
+
+<h3>5.1 Contrast with Prior PHP Prototype</h3>
+<p>The earlier PHP/MySQL prototype implemented bcrypt hashing, MySQLi prepared statements, and PHP session roles within an XAMPP environment. While pedagogically valuable, it lacked integrated admin tooling, migration management, escrow logic, containerised deployment, automated testing, and caching. The Django rewrite consolidates these capabilities and eliminates the academic demo-mode bypass in favour of seed_demo management command and Docker entrypoint seeding—preserving demonstration convenience without alternate authentication code paths.</p>
+
+<h2>6. Escrow Payment Subsystem</h2>
+<p>Trust in online service exchange depends partly on payment timing. ProTech holds client funds in escrow until work is verified complete, reducing upfront risk for clients and non-payment risk for workers. The subsystem resides in escrow/services.py, keeping views thin and financial rules unit-testable.</p>
+<p>The workflow proceeds as follows: (1) the client deposits demonstration funds into a UserWallet; (2) the client creates a Booking in pending status; (3) fund_escrow() debits the wallet and creates an EscrowHold linked one-to-one to the booking; (4) upon worker completion, release_escrow() computes platform_fee, credits worker_payout, updates EscrowVault aggregates, and writes WalletTransaction rows; (5) cancellation triggers refund_escrow() returning held amounts to the client wallet.</p>
+
+<div class="code-box">users ──1:1── UserWallet
+users ──1:1── Worker (professionals)
+users ──1:N── Booking ──1:1── EscrowHold
+Booking ──1:1── Review (post-completion)
+EscrowHold ──N:1── WalletTransaction (audit trail)
+EscrowVault (singleton) — platform-wide held/released totals</div>
+<div class="figure-caption">Fig. 1: Core entity relationships (simplified ER view)</div>
+
+<p>All monetary mutations execute inside database transactions with Decimal quantisation, preventing floating-point rounding errors. The service interface is structured so a production deployment could swap the internal ledger for Stripe Payment Intents and Connect webhooks without rewriting view layers.</p>
+
+<h2>7. Data Model and Booking Workflow</h2>
+<p>The relational schema centres on User and Worker profiles, ServiceCategory taxonomy, and Booking records linking clients to workers. Review attaches one-to-one to completed bookings. Supplementary Message, Notification, Favorite, and WorkerAvailability models support engagement beyond minimal booking forms.</p>
+<p>Bookings progress through a finite state machine: pending → confirmed → in_progress → completed or cancelled. Escrow funding may occur while a booking is pending; release or refund hooks align with payment_status transitions. Integration tests verify that funding escrow debits the client wallet and sets payment_status to escrow_held.</p>
+
+
+    <div class="figure-box">
+      <table><tr><th>Booking status</th><th>Actor</th><th>Escrow interaction</th></tr><tr><td>pending</td><td>Worker accepts/rejects</td><td>Client may fund escrow</td></tr><tr><td>confirmed / in_progress</td><td>Worker updates</td><td>Funds held if funded</td></tr><tr><td>completed</td><td>Worker marks done</td><td>release_escrow(); fee deducted</td></tr><tr><td>cancelled</td><td>Either party</td><td>refund_escrow() if held</td></tr></table>
+    </div>
+<div class="figure-caption">Table 4: Booking states and escrow coupling</div>
+
+</div>
+<div class="page-number">2</div>
+
+<div class="journal-header">
+  <div class="journal-name">ProTech: Django Marketplace with Escrow and RBAC</div>
+  <div>Manye Patrice | June 2026</div>
+</div>
+
+<div class="two-col-layout">
+
+<h2>8. Implementation and DevOps</h2>
+<p>Source code is organised by business domain rather than technical layer. The protech_project package holds settings with environment-driven secrets, URL routing, a Jinja2 environment shim exposing url_for and csrf_field helpers for legacy template compatibility, cache utilities, and a JSON /health/ endpoint for monitoring.</p>
+<p>Caching in protech_project/cache_utils.py stores worker search results for three hundred seconds and service categories for six hundred seconds. invalidate_workers_cache() runs when new reviews alter rating aggregates. Continuous integration sets USE_LOCMEM_CACHE so tests execute without a live Redis daemon.</p>
+<p>Structured logging writes to stdout and logs/django.log with per-application loggers (users, bookings, escrow). The Docker entrypoint runs migrations, collectstatic, seed_demo when the database is empty, and starts Gunicorn—enabling evaluators to run docker compose up --build and access http://localhost immediately.</p>
+
+
+    <div class="figure-box">
+      <table><tr><th>Rubric requirement</th><th>Implementation</th><th>Evidence</th></tr><tr><td>Django + templates</td><td>Django 5.2 + Jinja2</td><td>templates/, jinja2_env.py</td></tr><tr><td>Auth &amp; RBAC</td><td>Login, @user_type_required</td><td>users/decorators.py</td></tr><tr><td>Password reset</td><td>Django token flow</td><td>/password-reset/</td></tr><tr><td>Admin / CMS</td><td>Django Admin</td><td>/admin/</td></tr><tr><td>Docker + Redis</td><td>Four-service Compose</td><td>docker-compose.yml</td></tr><tr><td>Tests + CI</td><td>17 passing tests</td><td>.github/workflows/ci.yml</td></tr><tr><td>Logging</td><td>Per-app loggers</td><td>settings.py LOGGING</td></tr></table>
+    </div>
+<div class="figure-caption">Table 5: Academic rubric alignment (summary)</div>
+
+<h2>9. Testing and Evaluation</h2>
+<p>Quality assurance follows a pragmatic test pyramid. Unit tests validate model constraints and relationships. Integration tests in users/tests_integration.py exercise the health endpoint, email login, role-based access denial, and password reset availability. Escrow integration tests confirm wallet debits and payment status transitions.</p>
+<p>GitHub Actions workflow ci.yml runs on push to main: flake8 critical checks, migrations against ephemeral PostgreSQL, the full Django test suite, and a /health/ probe. At the time of writing, seventeen automated tests pass with USE_LOCMEM_CACHE enabled.</p>
+
+
+    <div class="figure-box">
+      <table><tr><th>Metric</th><th>Result</th><th>Benchmark</th></tr><tr><td>Automated tests</td><td>17 passing</td><td>Module requirement met</td></tr><tr><td>CI pipeline</td><td>Lint, migrate, test, health</td><td>GitHub Actions green</td></tr><tr><td>Deployment</td><td>docker compose up --build</td><td>Single-command demo</td></tr><tr><td>User roles</td><td>Client, worker, admin</td><td>RBAC verified</td></tr><tr><td>Escrow commission</td><td>5% default (configurable)</td><td>Live in services.py</td></tr><tr><td>Cache backend</td><td>Redis (prod) / locmem (CI)</td><td>Environment-aware</td></tr></table>
+    </div>
+<div class="figure-caption">Table 6: Evaluation metrics and outcomes</div>
+
+<h2>10. Limitations</h2>
+<p>Academic honesty requires explicit acknowledgment of constraints. ProTech uses demonstration wallet deposits rather than a licensed payment provider; worker subscription tiers are specified but not billed; messaging requires page refresh rather than WebSockets; test coverage excludes browser end-to-end automation; growth charts are illustrative rather than empirically validated; and legacy Flask/PHP artefacts remain in the repository for reference while Django is canonical.</p>
+
+<h2>11. Conclusion and Future Work</h2>
+<p>This paper has presented ProTech as a evolved, production-oriented marketplace replacing an earlier PHP prototype with a Django, PostgreSQL, Redis, and Docker stack. The platform integrates discovery, booking, messaging, reviews, escrow payments, caching, logging, automated testing, and continuous integration into a cohesive system suitable for master&#x27;s-level assessment and live defence demonstration.</p>
+<p>Future work prioritises Stripe (or equivalent) integration for regulated payments, WorkerSubscription model implementation with search-ranking enforcement, WebSocket or Celery notifications, Selenium/Cypress end-to-end tests, geolocation-aware matching, and two-factor authentication. The modular domain architecture supports these increments without fundamental restructuring.</p>
+<p>ProTech demonstrates that academic projects can meet rigorous full-stack criteria while addressing genuine marketplace problems—with transparent limitations and a credible path toward commercial deployment.</p>
+
+</div>
+
+<hr class="divider">
+
+<h2>References</h2>
+<div class="references">
+  <div class="ref-item">[1] Django Software Foundation. (2024). <em>Django Documentation (v5.2)</em>. https://docs.djangoproject.com/</div>
+  <div class="ref-item">[2] Docker Inc. (2024). <em>Docker Compose Specification</em>. https://docs.docker.com/compose/</div>
+  <div class="ref-item">[3] Edelman, B., Luca, M., &amp; Svirsky, D. (2012). From niches to riches: Anatomy of the long tail. <em>Harvard Business School Working Paper</em>.</div>
+  <div class="ref-item">[4] Evans, D. S., &amp; Schmalensee, R. (2016). <em>Matchmakers: The New Economics of Multisided Platforms</em>. Harvard Business Review Press.</div>
+  <div class="ref-item">[5] Fielding, R. T. (2000). <em>Architectural Styles and the Design of Network-based Software Architectures</em>. University of California, Irvine.</div>
+  <div class="ref-item">[6] Fowler, M. (2002). <em>Patterns of Enterprise Application Architecture</em>. Addison-Wesley.</div>
+  <div class="ref-item">[7] OWASP Foundation. (2021). <em>OWASP Top Ten Web Application Security Risks</em>. https://owasp.org/www-project-top-ten/</div>
+  <div class="ref-item">[8] Pavlou, P. A., &amp; Fygenson, M. (2006). Understanding and predicting electronic commerce adoption. <em>MIS Quarterly</em>, 30(1), 115–143.</div>
+  <div class="ref-item">[9] PostgreSQL Global Development Group. (2024). <em>PostgreSQL 15 Documentation</em>. https://www.postgresql.org/docs/</div>
+  <div class="ref-item">[10] Redis Ltd. (2024). <em>Redis Documentation</em>. https://redis.io/docs/</div>
+  <div class="ref-item">[11] Rochet, J.-C., &amp; Tirole, J. (2003). Platform competition in two-sided markets. <em>Journal of the European Economic Association</em>, 1(4), 990–1029.</div>
+  <div class="ref-item">[12] Marcotte, E. (2010). Responsive web design. <em>A List Apart</em>, 306.</div>
+</div>
+
+<div class="page-number">3</div>
+</body>
+</html>

@@ -983,6 +983,7 @@
 
                 <div class="contact-form-wrapper">
                     <form class="contact-form" method="POST" action="{{ url_for('contact_submit') }}">
+                        {{ csrf_field() }}
                         <div class="form-row">
                             <div class="form-group">
                                 <label>Name</label>

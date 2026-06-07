@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ booking.title }} - ProTech</title>
+    {% include 'partials/app_page_styles.html' %}
+    <style>
+        .timeline { border-left: 3px solid #dbeafe; padding-left: 1rem; margin: 1rem 0; }
+        .timeline li { margin-bottom: 0.35rem; color: #475569; font-size: 0.9rem; }
+        .badge { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+        .badge.pending { background: #fef3c7; color: #92400e; }
+        .badge.confirmed, .badge.in_progress { background: #dbeafe; color: #1e40af; }
+        .badge.completed { background: #d1fae5; color: #065f46; }
+        .badge.cancelled { background: #f3f4f6; color: #4b5563; }
+        .actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <div class="nav">
+            <a href="{{ url_for('my_bookings') }}">← My Bookings</a>
+            <a href="{{ url_for('messages_page', with=other_user_id, booking=booking.id) }}">Message {{ other_user_name }}</a>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class="flash {{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <h1>{{ booking.title }}</h1>
+        <p class="sub">
+            {% if user_type == 'worker' %}Client: {{ booking.client_name }}{% else %}Worker: {{ booking.worker_name }}{% endif %}
+            · {{ booking.scheduled_date.strftime('%b %d, %Y') if booking.scheduled_date else 'TBD' }}
+            {% if booking.scheduled_time %} at {{ booking.scheduled_time.strftime('%I:%M %p') }}{% endif %}
+        </p>
+
+        <div class="card">
+            <p><span class="badge {{ booking.status }}">{{ booking.status|replace('_', ' ') }}</span>
+               <span class="badge" style="background:#e0e7ff;color:#3730a3;">Payment: {{ booking.payment_status|replace('_', ' ') }}</span></p>
+            {% if booking.category_name %}<p class="meta"><strong>Category:</strong> {{ booking.category_name }}</p>{% endif %}
+            {% if booking.description %}<p>{{ booking.description }}</p>{% endif %}
+            <p class="meta"><strong>Address:</strong> {{ booking.address }}</p>
+            <p class="meta"><strong>Price:</strong> ${{ "%.2f"|format(booking.price) }}
+            {% if booking.escrow and booking.escrow.status == 'held' %} · ${{ "%.2f"|format(booking.escrow.amount) }} in escrow{% endif %}
+            </p>
+
+            <ul class="timeline">
+                <li>1. Client submits booking (pending)</li>
+                <li>2. Worker accepts → confirmed</li>
+                <li>3. Client funds escrow</li>
+                <li>4. Worker starts job → in progress</li>
+                <li>5. Worker completes → escrow released</li>
+            </ul>
+
+            <div class="actions">
+                {% if user_type != 'worker' and booking.payment_status == 'pending' and booking.status != 'cancelled' %}
+                <a href="{{ url_for('escrow_pay', booking_id=booking.id) }}" class="btn btn-primary">Pay into escrow</a>
+                {% endif %}
+
+                {% if user_type == 'worker' and booking.status == 'pending' %}
+                <form method="POST" action="{{ url_for('update_booking', booking_id=booking.id) }}" style="display:inline;">
+                    {{ csrf_field() }}
+                    <button type="submit" name="action" value="confirm" class="btn btn-primary">Accept</button>
+                </form>
+                <form method="POST" action="{{ url_for('update_booking', booking_id=booking.id) }}" style="display:inline;">
+                    {{ csrf_field() }}
+                    <button type="submit" name="action" value="decline" class="btn btn-outline">Decline</button>
+                </form>
+                {% endif %}
+
+                {% if user_type == 'worker' and booking.status == 'confirmed' %}
+                <form method="POST" action="{{ url_for('update_booking', booking_id=booking.id) }}" style="display:inline;">
+                    {{ csrf_field() }}
+                    <button type="submit" name="action" value="start" class="btn btn-primary">Start job (requires escrow)</button>
+                </form>
+                {% endif %}
+
+                {% if user_type == 'worker' and booking.status == 'in_progress' %}
+                <form method="POST" action="{{ url_for('update_booking', booking_id=booking.id) }}" style="display:inline;">
+                    {{ csrf_field() }}
+                    <button type="submit" name="action" value="complete" class="btn btn-primary">Mark complete</button>
+                </form>
+                {% endif %}
+
+                {% if booking.status in ['pending', 'confirmed'] %}
+                <form method="POST" action="{{ url_for('update_booking', booking_id=booking.id) }}" style="display:inline;" onsubmit="return confirm('Cancel this booking?');">
+                    {{ csrf_field() }}
+                    <button type="submit" name="action" value="cancel" class="btn btn-outline">Cancel</button>
+                </form>
+                {% endif %}
+
+                {% if user_type != 'worker' and booking.status == 'completed' and not has_review %}
+                <a href="{{ url_for('review', booking_id=booking.id) }}" class="btn btn-primary">Leave review</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</body>
+</html>

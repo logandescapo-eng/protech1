@@ -9,6 +9,29 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      USE_LOCMEM_CACHE: '1'
+      SECRET_KEY: test-secret-key
+      DEBUG: 'True'
+      DB_NAME: protech_test
+      DB_USER: postgres
+      DB_PASS: postgres
+      DB_HOST: localhost
+      DB_PORT: 5432
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_DB: protech_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v4
 
@@ -19,15 +42,17 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Verify app imports
-        run: python -c "from app import app; print('App OK')"
+      - name: Lint (flake8)
+        run: flake8 users bookings reviews escrow protech_project --count --select=E9,F63,F7,F82 --show-source --statistics
+
+      - name: Run migrations
+        run: python manage.py migrate --noinput
+
+      - name: Run Django tests
+        run: python manage.py test users bookings reviews escrow --verbosity=2
 
       - name: Verify health route
         run: |
-          python -c "
-          from app import app
-          c = app.test_client()
-          r = c.get('/health')
-          assert r.status_code == 200, r.data
-          print('Health OK:', r.get_json())
-          "
+          python manage.py runserver 0.0.0.0:8000 &
+          sleep 3
+          python -c "import urllib.request; r=urllib.request.urlopen('http://127.0.0.1:8000/health/'); print(r.read())"

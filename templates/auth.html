@@ -410,6 +410,7 @@
                 <div id="login-form" class="form-section active">
                     <h2>Welcome Back</h2>
                     <form action="{{ url_for('auth') }}" method="POST">
+                        {{ csrf_field() }}
                         <input type="hidden" name="login" value="1">
                         <div class="form-group">
                             <label>Email</label>
@@ -444,7 +445,7 @@
                                 <input type="checkbox" name="remember">
                                 Remember me
                             </label>
-                            <a href="#" class="forgot-link">Forgot password?</a>
+                            <a href="{{ url_for('password_reset') }}" class="forgot-link">Forgot password?</a>
                         </div>
 
                         <button type="submit" class="submit-btn">Sign In</button>
@@ -455,6 +456,7 @@
                 <div id="user-form" class="form-section">
                     <h2>Create User Account</h2>
                     <form action="{{ url_for('auth') }}" method="POST">
+                        {{ csrf_field() }}
                         <input type="hidden" name="user_signup" value="1">
                         <div class="form-group">
                             <label>Full Name</label>
@@ -519,6 +521,7 @@
                 <div id="worker-form" class="form-section">
                     <h2>Join as a Professional</h2>
                     <form action="{{ url_for('auth') }}" method="POST">
+                        {{ csrf_field() }}
                         <input type="hidden" name="worker_signup" value="1">
                         <div class="form-group">
                             <label>Full Name</label>

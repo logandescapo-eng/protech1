@@ -1,7 +1,35 @@
+# Python
 __pycache__/
 *.py[cod]
-.env
+*.egg-info/
 .venv/
 venv/
-*.log
+env/
+
+# Environment & secrets
+.env
+.env.local
+*.pem
+
+# Django
+staticfiles/
+media/
+logs/*.log
+db.sqlite3
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
 .DS_Store
+Thumbs.db
+
+# Test / coverage
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Legacy Flask local artifacts (optional local run)
+*.log

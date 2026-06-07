@@ -56,6 +56,7 @@
 
         {% if layout_user_type == 'user' %}
         <form method="POST" class="card">
+                        {{ csrf_field() }}
             <h3 style="margin-bottom:0.75rem;">Add funds (demo)</h3>
             <p class="meta" style="margin-bottom:1rem;">Simulates a secure deposit from your bank. Max $1,000 per transaction.</p>
             <div class="form-group">

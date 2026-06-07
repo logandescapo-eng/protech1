@@ -43,7 +43,7 @@
                         {% for m in conversation %}
                         <div class="msg {% if m.sender_id == session.user_id %}mine{% else %}theirs{% endif %}">
                             <div>{{ m.message }}</div>
-                            <div class="msg-meta">{{ m.sender_name }} · {{ m.created_at.strftime('%b %d, %I:%M %p') if m.created_at else '' }}</div>
+                            <div class="msg-meta">{{ m.sender.get_full_name() or m.sender.username }} · {{ m.created_at.strftime('%b %d, %I:%M %p') if m.created_at else '' }}</div>
                         </div>
                         {% endfor %}
                     {% else %}
@@ -51,7 +51,9 @@
                     {% endif %}
                 </div>
                 <form method="POST">
+                        {{ csrf_field() }}
                     <input type="hidden" name="receiver_id" value="{{ active_contact.id }}">
+                    {% if booking_id %}<input type="hidden" name="booking_id" value="{{ booking_id }}">{% endif %}
                     <div class="form-group">
                         <label for="message">Your message</label>
                         <textarea id="message" name="message" required placeholder="Type a message..."></textarea>

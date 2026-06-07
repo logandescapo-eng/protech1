@@ -735,9 +735,11 @@
                                 {% endif %}
                                 <div class="job-actions">
                                     <form method="POST" action="{{ url_for('update_booking', booking_id=booking.id) }}" style="display:inline;">
+                        {{ csrf_field() }}
                                         <button type="submit" name="action" value="accept" class="btn btn-success">Accept</button>
                                     </form>
                                     <form method="POST" action="{{ url_for('update_booking', booking_id=booking.id) }}" style="display:inline;">
+                        {{ csrf_field() }}
                                         <button type="submit" name="action" value="decline" class="btn btn-outline">Decline</button>
                                     </form>
                                 </div>

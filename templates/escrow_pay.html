@@ -43,6 +43,7 @@
             <p class="meta">On completion, the worker receives {{ 100 - platform_fee_percent|int }}% ({{ platform_fee_percent }}% platform fee). On cancellation, you get a full refund from escrow.</p>
             {% if wallet.available_balance >= booking.price %}
             <form method="POST">
+                        {{ csrf_field() }}
                 <button type="submit" class="btn btn-primary">Place ${{ "%.2f"|format(booking.price) }} in escrow</button>
             </form>
             {% else %}

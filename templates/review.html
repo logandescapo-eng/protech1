@@ -25,6 +25,7 @@
         {% endwith %}
 
         <form method="POST" class="card">
+                        {{ csrf_field() }}
             <div class="form-group">
                 <label for="rating">Rating (1–5 stars)</label>
                 <select id="rating" name="rating" required>

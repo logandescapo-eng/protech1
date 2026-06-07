@@ -21,6 +21,7 @@
         {% endwith %}
 
         <form method="POST" class="card">
+                        {{ csrf_field() }}
             <input type="hidden" name="form_type" value="profile">
             <h3 style="margin-bottom:1rem;">Profile</h3>
             <div class="form-group">
@@ -54,10 +55,28 @@
             </div>
             {% endif %}
 
+            {% if user_type == 'worker' and worker %}
+            <hr style="margin:1.5rem 0;border:none;border-top:1px solid #e5e7eb;">
+            <h3 style="margin-bottom:1rem;">Weekly availability</h3>
+            <p class="meta" style="margin-bottom:1rem;">Clients can only book during checked hours (leave all unchecked to allow any time).</p>
+            {% for row in availability_rows %}
+            <div class="form-group" style="display:flex;flex-wrap:wrap;gap:0.75rem;align-items:center;">
+                <label style="min-width:100px;">
+                    <input type="checkbox" name="avail_{{ row.day_of_week }}_enabled" {% if row.enabled %}checked{% endif %}>
+                    {{ row.day_label }}
+                </label>
+                <input type="time" name="avail_{{ row.day_of_week }}_start" value="{{ row.start_time }}">
+                <span>to</span>
+                <input type="time" name="avail_{{ row.day_of_week }}_end" value="{{ row.end_time }}">
+            </div>
+            {% endfor %}
+            {% endif %}
+
             <button type="submit" class="btn btn-primary">Save profile</button>
         </form>
 
         <form method="POST" class="card">
+                        {{ csrf_field() }}
             <input type="hidden" name="form_type" value="password">
             <h3 style="margin-bottom:1rem;">Change password</h3>
             <div class="form-group">

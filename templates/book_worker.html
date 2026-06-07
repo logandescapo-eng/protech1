@@ -30,6 +30,7 @@
         </div>
 
         <form method="POST" class="card">
+                        {{ csrf_field() }}
             <div class="form-group">
                 <label for="title">Job title</label>
                 <input type="text" id="title" name="title" placeholder="e.g. Kitchen sink repair" required>

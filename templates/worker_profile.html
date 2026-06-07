@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ worker.name }} - ProTech</title>
+    {% include 'partials/app_page_styles.html' %}
+</head>
+<body>
+    <div class="wrap">
+        <div class="nav">
+            <a href="{{ url_for('browse_workers') }}">← Browse workers</a>
+            {% if is_logged_in and layout_user_type == 'user' %}
+            <a href="{{ url_for('user_dashboard') }}">Dashboard</a>
+            {% endif %}
+        </div>
+
+        <div class="card">
+            <h1>{{ worker.name }}</h1>
+            <p class="sub">{{ worker.service_area }} · ★ {{ "%.1f"|format(worker.rating) }} ({{ worker.total_reviews }} reviews) · {{ worker.total_jobs }} jobs</p>
+            <p><strong>Skills:</strong> {{ worker.skills }}</p>
+            {% if worker.experience %}<p class="meta">{{ worker.experience }} years experience · ${{ "%.0f"|format(worker.hourly_rate) }}/hr suggested</p>{% endif %}
+            {% if worker.bio %}<p style="margin-top:0.75rem;">{{ worker.bio }}</p>{% endif %}
+
+            {% if can_book %}
+            <p style="margin-top:1rem;"><a href="{{ url_for('book_worker', worker_id=worker.id) }}" class="btn btn-primary">Book {{ worker.name.split()[0] }}</a></p>
+            {% elif not is_logged_in %}
+            <p style="margin-top:1rem;"><a href="{{ url_for('auth') }}" class="btn btn-primary">Log in to book</a></p>
+            {% endif %}
+        </div>
+
+        {% if availability %}
+        <div class="card">
+            <h3 style="margin-bottom:0.75rem;">Weekly availability</h3>
+            <ul style="list-style:none;padding:0;">
+                {% for row in availability %}
+                <li class="meta" style="padding:0.25rem 0;">
+                    <strong>{{ row.day_label }}:</strong>
+                    {% if row.enabled %}{{ row.start_time }} – {{ row.end_time }}{% else %}<em>Unavailable</em>{% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <div class="card">
+            <h3 style="margin-bottom:0.75rem;">Reviews</h3>
+            {% if reviews %}
+                {% for r in reviews %}
+                <div style="border-bottom:1px solid #e5e7eb;padding:0.75rem 0;">
+                    <strong>★ {{ r.rating }}/5</strong> — {{ r.user.get_full_name() or r.user.username }}
+                    {% if r.comment %}<p class="meta" style="margin-top:0.35rem;">{{ r.comment }}</p>{% endif %}
+                </div>
+                {% endfor %}
+            {% else %}
+                <p class="meta">No reviews yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

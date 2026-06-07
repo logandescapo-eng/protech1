@@ -74,7 +74,7 @@
         {% if bookings %}
             {% for booking in bookings %}
             <div class="booking">
-                <h3>{{ booking.title }}</h3>
+                <h3><a href="{{ url_for('booking_detail', booking_id=booking.id) }}" style="color:inherit;text-decoration:none;">{{ booking.title }}</a></h3>
                 <p class="meta">
                     {% if user_type == 'worker' %}
                     Client: {{ booking.client_name or 'Unknown' }}
@@ -94,26 +94,38 @@
                 {% endif %}
 
                 <div class="actions">
-                    {% if user_type != 'worker' and booking.payment_status == 'pending' %}
+                    <a href="{{ url_for('booking_detail', booking_id=booking.id) }}" class="btn btn-outline">View details</a>
+                    {% if user_type != 'worker' and booking.payment_status == 'pending' and booking.status != 'cancelled' %}
                     <a href="{{ url_for('escrow_pay', booking_id=booking.id) }}" class="btn btn-primary">Pay into escrow</a>
                     {% endif %}
                     {% if user_type == 'worker' and booking.status == 'pending' %}
                     <form method="POST" action="{{ url_for('update_booking', booking_id=booking.id) }}" style="display:inline;">
-                        <button type="submit" name="action" value="accept" class="btn btn-success">Accept</button>
+                        {{ csrf_field() }}
+                        <button type="submit" name="action" value="confirm" class="btn btn-success">Accept</button>
                     </form>
                     <form method="POST" action="{{ url_for('update_booking', booking_id=booking.id) }}" style="display:inline;">
+                        {{ csrf_field() }}
                         <button type="submit" name="action" value="decline" class="btn btn-outline">Decline</button>
                     </form>
                     {% endif %}
 
-                    {% if user_type == 'worker' and booking.status in ['confirmed', 'in_progress'] %}
+                    {% if user_type == 'worker' and booking.status == 'confirmed' %}
                     <form method="POST" action="{{ url_for('update_booking', booking_id=booking.id) }}" style="display:inline;">
+                        {{ csrf_field() }}
+                        <button type="submit" name="action" value="start" class="btn btn-primary">Start job</button>
+                    </form>
+                    {% endif %}
+
+                    {% if user_type == 'worker' and booking.status == 'in_progress' %}
+                    <form method="POST" action="{{ url_for('update_booking', booking_id=booking.id) }}" style="display:inline;">
+                        {{ csrf_field() }}
                         <button type="submit" name="action" value="complete" class="btn btn-primary">Mark Complete</button>
                     </form>
                     {% endif %}
 
                     {% if user_type != 'worker' and booking.status in ['pending', 'confirmed'] %}
                     <form method="POST" action="{{ url_for('update_booking', booking_id=booking.id) }}" style="display:inline;" onsubmit="return confirm('Cancel this booking?');">
+                        {{ csrf_field() }}
                         <button type="submit" name="action" value="cancel" class="btn btn-danger">Cancel</button>
                     </form>
                     {% endif %}

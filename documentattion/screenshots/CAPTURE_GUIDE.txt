@@ -1,0 +1,31 @@
+ProTech — Screenshot capture checklist for the technical report
+================================================================
+
+1. Run the app:  docker compose up --build
+2. Open:         http://localhost
+3. Save PNGs here, then insert into Word placeholders in ProTech_Technical_Report.docx
+
+FIGURES IN SECTION 3.5 (highlights)
+  Figure 6  — Landing page (/)                    — no login
+  Figure 7  — Client dashboard                    — john@example.com / password123
+  Figure 8  — Worker dashboard                    — mike@example.com / password123
+
+FIGURES IN APPENDIX C (full gallery)
+  Figure 9   — Landing Page (Home)
+  Figure 10  — Authentication (/auth/)
+  Figure 11  — Pricing (/pricing/)
+  Figure 12  — FAQ (/faq/)
+  Figure 13  — Client Dashboard
+  Figure 14  — Browse Workers (/workers/)
+  Figure 15  — Book a Worker
+  Figure 16  — My Bookings (/bookings/)
+  Figure 17  — Wallet (/wallet/)
+  Figure 18  — Escrow Payment
+  Figure 19  — Leave a Review
+  Figure 20  — Worker Dashboard
+  Figure 21  — Worker Bookings
+  Figure 22  — Messages (/messages/)
+  Figure 23  — Django Admin — Users
+  Figure 24  — Django Admin — Bookings
+
+Word: click inside dashed box → Insert → Pictures → select your PNG

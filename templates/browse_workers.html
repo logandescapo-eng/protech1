@@ -28,15 +28,24 @@
             <div class="filters">
                 <div>
                     <label for="skill">Skill</label>
-                    <input type="text" id="skill" name="skill" value="{{ request.args.get('skill', '') }}" placeholder="e.g. Plumbing">
+                    <input type="text" id="skill" name="skill" value="{{ request.GET.get('skill', '') }}" placeholder="e.g. Plumbing">
                 </div>
                 <div>
                     <label for="location">Location</label>
-                    <input type="text" id="location" name="location" value="{{ request.args.get('location', '') }}" placeholder="e.g. New York">
+                    <input type="text" id="location" name="location" value="{{ request.GET.get('location', '') }}" placeholder="e.g. New York">
                 </div>
                 <div>
                     <label for="min_rating">Min rating</label>
-                    <input type="number" id="min_rating" name="min_rating" min="0" max="5" step="0.1" value="{{ request.args.get('min_rating', '') }}" placeholder="4.0">
+                    <input type="number" id="min_rating" name="min_rating" min="0" max="5" step="0.1" value="{{ request.GET.get('min_rating', '') }}" placeholder="4.0">
+                </div>
+                <div>
+                    <label for="category">Category</label>
+                    <select id="category" name="category">
+                        <option value="">All categories</option>
+                        {% for cat in categories %}
+                        <option value="{{ cat.id }}" {% if selected_category == cat.id|string %}selected{% endif %}>{{ cat.name }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
                 <div style="display:flex;align-items:flex-end;">
                     <button type="submit" class="btn btn-primary">Search</button>
@@ -52,8 +61,10 @@
                 <p><strong>Skills:</strong> {{ worker.skills }}</p>
                 {% if worker.experience %}<p class="meta">{{ worker.experience }} years experience · ${{ "%.0f"|format(worker.hourly_rate or 0) }}/hr</p>{% endif %}
                 <p style="margin-top:0.75rem;" class="actions-row">
-                    <a href="{{ url_for('book_worker', worker_id=worker.id) }}" class="btn btn-primary">Book {{ worker.name.split()[0] }}</a>
+                    <a href="{{ url_for('worker_profile', worker_id=worker.id) }}" class="btn btn-outline">View profile</a>
+                    <a href="{{ url_for('book_worker', worker_id=worker.id) }}" class="btn btn-primary">Book</a>
                     <form method="POST" action="{{ url_for('favorites_page') }}" style="display:inline;">
+                        {{ csrf_field() }}
                         <input type="hidden" name="action" value="add">
                         <input type="hidden" name="worker_id" value="{{ worker.id }}">
                         <button type="submit" class="btn btn-outline">♥ Save</button>
