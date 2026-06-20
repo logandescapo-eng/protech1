@@ -1,29 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ booking.title }} - ProTech</title>
-    {% include 'partials/app_page_styles.html' %}
-    <style>
-        .timeline { border-left: 3px solid #dbeafe; padding-left: 1rem; margin: 1rem 0; }
-        .timeline li { margin-bottom: 0.35rem; color: #475569; font-size: 0.9rem; }
-        .badge { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
-        .badge.pending { background: #fef3c7; color: #92400e; }
-        .badge.confirmed, .badge.in_progress { background: #dbeafe; color: #1e40af; }
-        .badge.completed { background: #d1fae5; color: #065f46; }
-        .badge.cancelled { background: #f3f4f6; color: #4b5563; }
-        .actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; }
-    </style>
-</head>
-<body>
-    <div class="wrap">
-        <div class="nav">
-            <a href="{{ url_for('my_bookings') }}">← My Bookings</a>
-            <a href="{{ url_for('messages_page', with=other_user_id, booking=booking.id) }}">Message {{ other_user_name }}</a>
-        </div>
-
-        {% with messages = get_flashed_messages(with_categories=true) %}
+{% set page_title = page_title|default('ProTech') %}
+{% include 'partials/app_layout_open.html' %}
+{% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
                 <div class="flash {{ category }}">{{ message }}</div>
@@ -98,6 +75,4 @@
                 {% endif %}
             </div>
         </div>
-    </div>
-</body>
-</html>
+{% include 'partials/app_layout_close.html' %}

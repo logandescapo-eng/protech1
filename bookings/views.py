@@ -44,7 +44,14 @@ def _booking_queryset_for(user):
 @login_required
 def my_bookings(request):
     user = request.user
-    qs = _booking_queryset_for(user).order_by('-created_at')
+    qs = _booking_queryset_for(user)
+    view = request.GET.get('view', '')
+    if view == 'pending' and user.user_type == 'worker':
+        qs = qs.filter(status='pending')
+    elif view == 'schedule' and user.user_type == 'worker':
+        qs = qs.filter(status__in=['confirmed', 'in_progress']).order_by('scheduled_date', 'scheduled_time')
+    else:
+        qs = qs.order_by('-created_at')
     bookings = [booking_dict(b) for b in qs]
     pending_review_ids = set()
     if user.user_type == 'user':
@@ -58,11 +65,17 @@ def my_bookings(request):
     from escrow.services import get_wallet_summary
 
     wallet = get_wallet_summary(user)
+    page_titles = {
+        'pending': 'Job Requests',
+        'schedule': 'My Schedule',
+    }
     return render(request, 'my_bookings.html', {
         'bookings': bookings,
         'user_type': user.user_type,
         'pending_review_ids': pending_review_ids,
         'wallet': wallet,
+        'list_view': view,
+        'page_title': page_titles.get(view, 'My Bookings'),
     })
 
 
@@ -91,6 +104,7 @@ def booking_detail(request, booking_id):
         'has_review': has_review,
         'other_user_id': other_user.id,
         'other_user_name': display_name(other_user),
+        'page_title': b.title,
     })
 
 
@@ -154,6 +168,7 @@ def book_worker(request, worker_id):
         'worker': w,
         'categories': categories,
         'platform_fee_percent': settings.ESCROW_PLATFORM_FEE_PERCENT,
+        'page_title': 'Book ' + w.name,
     })
 
 

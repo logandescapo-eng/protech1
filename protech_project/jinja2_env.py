@@ -9,7 +9,7 @@ from django.utils.html import mark_safe
 from jinja2 import Environment, pass_context
 
 
-QUERY_PARAM_KEYS = ('tab', 'mark_all', 'read', 'with', 'booking')
+QUERY_PARAM_KEYS = ('tab', 'mark_all', 'read', 'with', 'booking', 'view')
 
 
 def url_for(endpoint, **values):

@@ -1,21 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ worker.name }} - ProTech</title>
-    {% include 'partials/app_page_styles.html' %}
-</head>
-<body>
-    <div class="wrap">
-        <div class="nav">
-            <a href="{{ url_for('browse_workers') }}">← Browse workers</a>
-            {% if is_logged_in and layout_user_type == 'user' %}
-            <a href="{{ url_for('user_dashboard') }}">Dashboard</a>
-            {% endif %}
-        </div>
-
-        <div class="card">
+{% set page_title = page_title|default('ProTech') %}
+{% include 'partials/app_layout_open.html' %}
+<div class="card">
             <h1>{{ worker.name }}</h1>
             <p class="sub">{{ worker.service_area }} · ★ {{ "%.1f"|format(worker.rating) }} ({{ worker.total_reviews }} reviews) · {{ worker.total_jobs }} jobs</p>
             <p><strong>Skills:</strong> {{ worker.skills }}</p>
@@ -27,8 +12,7 @@
             {% elif not is_logged_in %}
             <p style="margin-top:1rem;"><a href="{{ url_for('auth') }}" class="btn btn-primary">Log in to book</a></p>
             {% endif %}
-        </div>
-
+        
         {% if availability %}
         <div class="card">
             <h3 style="margin-bottom:0.75rem;">Weekly availability</h3>
@@ -56,6 +40,4 @@
                 <p class="meta">No reviews yet.</p>
             {% endif %}
         </div>
-    </div>
-</body>
-</html>
+{% include 'partials/app_layout_close.html' %}

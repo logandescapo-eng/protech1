@@ -16,6 +16,7 @@ from .decorators import user_type_required
 from .models import Favorite, Message, Notification, Worker
 from .services import (
     get_categories_list,
+    get_message_contacts,
     get_user_stats,
     get_worker_public_reviews,
     get_worker_stats,
@@ -223,6 +224,7 @@ def browse_workers(request):
         'workers': get_workers_list(filters),
         'categories': get_categories_list(),
         'selected_category': request.GET.get('category', ''),
+        'page_title': 'Find a Professional',
     })
 
 
@@ -307,7 +309,7 @@ def notifications_page(request):
         Notification.objects.filter(user=request.user, id=request.GET.get('read')).update(is_read=True)
         return redirect('notifications_page')
     notes = Notification.objects.filter(user=request.user).order_by('-created_at')[:50]
-    return render(request, 'notifications.html', {'notifications': notes})
+    return render(request, 'notifications.html', {'notifications': notes, 'page_title': 'Notifications'})
 
 
 @login_required
@@ -351,7 +353,7 @@ def messages_page(request):
             redirect_url += f'&booking={bid}'
         return redirect(redirect_url)
 
-    contacts = _message_contacts(user)
+    contacts = get_message_contacts(user)
     other_id = request.GET.get('with')
     active_contact = None
     conversation = []
@@ -371,38 +373,39 @@ def messages_page(request):
         'other_id': int(other_id) if other_id else None,
         'booking_id': int(booking_id) if booking_id else None,
         'session': {'user_id': user.id},
+        'page_title': 'Messages',
     })
-
-
-def _message_contacts(user):
-    """Users the current user has bookings with or prior messages."""
-    from django.contrib.auth import get_user_model
-
-    User = get_user_model()
-    ids = set()
-    if user.user_type == 'worker':
-        for b in Booking.objects.filter(worker__user=user).select_related('user'):
-            ids.add(b.user_id)
-    else:
-        for b in Booking.objects.filter(user=user).select_related('worker__user'):
-            ids.add(b.worker.user_id)
-    for m in Message.objects.filter(Q(sender=user) | Q(receiver=user)):
-        ids.add(m.sender_id if m.sender_id != user.id else m.receiver_id)
-    ids.discard(user.id)
-    contacts = []
-    for u in User.objects.filter(pk__in=ids):
-        contacts.append(user_contact(u))
-    contacts.sort(key=lambda c: c.name.lower())
-    return contacts
 
 
 @login_required
 def reviews_page(request):
-    pending = Booking.objects.filter(user=request.user, status='completed').exclude(
-        id__in=Review.objects.filter(user=request.user).values_list('booking_id', flat=True)
-    )
-    given = Review.objects.filter(user=request.user).select_related('worker__user', 'booking')
-    return render(request, 'reviews_list.html', {'pending': pending, 'reviews': given})
+    user = request.user
+    if user.user_type == 'worker':
+        worker = Worker.objects.filter(user=user).first()
+        received = []
+        if worker:
+            received = list(
+                Review.objects.filter(worker=worker)
+                .select_related('user', 'booking')
+                .order_by('-created_at')
+            )
+        return render(request, 'reviews_list.html', {
+            'pending': [],
+            'reviews': received,
+            'user_type': 'worker',
+            'page_title': 'Reviews',
+        })
+
+    pending = Booking.objects.filter(user=user, status='completed').exclude(
+        id__in=Review.objects.filter(user=user).values_list('booking_id', flat=True)
+    ).select_related('worker__user')
+    given = Review.objects.filter(user=user).select_related('worker__user', 'booking')
+    return render(request, 'reviews_list.html', {
+        'pending': pending,
+        'reviews': given,
+        'user_type': 'user',
+        'page_title': 'Reviews',
+    })
 
 
 @login_required
@@ -420,17 +423,35 @@ def favorites_page(request):
         return redirect(request.META.get('HTTP_REFERER', 'browse_workers'))
     favorites = Favorite.objects.filter(user=request.user).select_related('worker__user')
     workers = [worker_dict(f.worker) for f in favorites]
-    return render(request, 'favorites.html', {'workers': workers})
+    return render(request, 'favorites.html', {'workers': workers, 'page_title': 'Favorites'})
 
 
 @login_required
 def profile_page(request):
+    from types import SimpleNamespace
+
+    from users.services import get_user_stats, get_worker_stats
+
     worker = None
+    stats = None
     if request.user.user_type == 'worker':
         worker = Worker.objects.filter(user=request.user).first()
+        if worker:
+            stats = get_worker_stats(worker)
+    else:
+        stats = get_user_stats(request.user)
+    profile = SimpleNamespace(
+        name=display_name(request.user),
+        email=request.user.email,
+        phone=request.user.phone or '—',
+        user_type=request.user.user_type,
+        created_at=request.user.date_joined,
+    )
     return render(request, 'profile.html', {
-        'profile_user': request.user,
+        'user': profile,
         'worker': worker_dict(worker) if worker else None,
+        'stats': stats,
+        'page_title': 'Profile',
     })
 
 
@@ -480,4 +501,5 @@ def settings_page(request):
         'user_type': request.user.user_type,
         'worker': worker,
         'availability_rows': availability_rows,
+        'page_title': 'Settings',
     })

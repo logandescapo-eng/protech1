@@ -1,15 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Notifications - ProTech</title>
-    {% include 'partials/app_page_styles.html' %}
-</head>
-<body>
-    <div class="wrap">
-        {% include 'partials/subpage_nav.html' %}
-        <h1>Notifications</h1>
+{% set page_title = page_title|default('ProTech') %}
+{% include 'partials/app_layout_open.html' %}
+<h1>Notifications</h1>
         <p class="sub">Booking updates and alerts</p>
 
         {% with messages = get_flashed_messages(with_categories=true) %}
@@ -33,7 +24,7 @@
                     <a href="{{ url_for('notifications_page', read=n.id) }}" class="btn btn-outline">Mark read</a>
                     {% endif %}
                     {% if n.type == 'booking' %}
-                    <a href="{{ url_for('my_bookings') }}" class="btn btn-primary">View bookings</a>
+                    <a href="{{ n.link or url_for('my_bookings') }}" class="btn btn-primary">View booking</a>
                     {% elif n.type == 'message' %}
                     <a href="{{ url_for('messages_page') }}" class="btn btn-primary">Open messages</a>
                     {% elif n.type == 'review' %}
@@ -48,6 +39,4 @@
             <p>No notifications yet.</p>
         </div>
         {% endif %}
-    </div>
-</body>
-</html>
+{% include 'partials/app_layout_close.html' %}

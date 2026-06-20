@@ -1,19 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Leave Review - ProTech</title>
-    {% include 'partials/app_page_styles.html' %}
-</head>
-<body>
-    <div class="wrap">
-        <div class="nav">
-            <a href="{{ url_for('my_bookings') }}">← My Bookings</a>
-            <a href="{{ url_for('user_dashboard') }}">Dashboard</a>
-        </div>
-
-        <h1>Leave a review</h1>
+{% set page_title = page_title|default('ProTech') %}
+{% include 'partials/app_layout_open.html' %}
+<h1>Leave a review</h1>
         <p class="sub">{{ booking.title }} with {{ booking.worker_name or 'your professional' }}</p>
 
         {% with messages = get_flashed_messages(with_categories=true) %}
@@ -41,6 +28,4 @@
             </div>
             <button type="submit" class="btn btn-primary">Submit review</button>
         </form>
-    </div>
-</body>
-</html>
+{% include 'partials/app_layout_close.html' %}

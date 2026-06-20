@@ -47,4 +47,7 @@ def review(request, booking_id):
         logger.info('Review created for booking %s', booking_id)
         messages.success(request, 'Thank you for your review!')
         return redirect('my_bookings')
-    return render(request, 'review.html', {'booking': booking})
+    return render(request, 'review.html', {
+        'booking': booking,
+        'page_title': 'Leave a Review',
+    })

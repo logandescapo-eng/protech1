@@ -1,0 +1,28 @@
+<div class="notifications-dropdown" id="notifications-panel" role="menu" aria-labelledby="btn-notifications" hidden>
+    <div class="panel-header">
+        <h3>Notifications</h3>
+        {% if layout_unread_notifications %}
+        <a href="{{ url_for('notifications_page', mark_all=1) }}" class="panel-header-link">Mark all read</a>
+        {% endif %}
+    </div>
+    <div class="panel-body">
+        {% if layout_notifications %}
+            {% for n in layout_notifications %}
+            <a href="{% if n.type == 'booking' %}{{ n.link or url_for('my_bookings') }}{% elif n.type == 'message' %}{{ url_for('messages_page') }}{% elif n.type == 'review' %}{{ url_for('reviews_page') }}{% else %}{{ url_for('notifications_page', read=n.id) }}{% endif %}"
+               class="panel-item{% if not n.is_read %} unread{% endif %}">
+                <div class="panel-item-title">
+                    {{ n.title }}
+                    {% if not n.is_read %}<span class="panel-dot" aria-label="Unread"></span>{% endif %}
+                </div>
+                <p class="panel-item-text">{{ n.message }}</p>
+                <span class="panel-item-meta">{{ n.created_at.strftime('%b %d, %I:%M %p') if n.created_at else '' }}</span>
+            </a>
+            {% endfor %}
+        {% else %}
+            <div class="panel-empty">No notifications yet.</div>
+        {% endif %}
+    </div>
+    <div class="panel-footer">
+        <a href="{{ url_for('notifications_page') }}">View all notifications</a>
+    </div>
+</div>

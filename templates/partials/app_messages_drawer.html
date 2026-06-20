@@ -1,0 +1,27 @@
+<div class="messages-overlay" id="messages-overlay" hidden></div>
+<aside class="messages-drawer" id="messages-panel" role="dialog" aria-labelledby="messages-panel-title" aria-modal="true" hidden>
+    <div class="panel-header">
+        <h3 id="messages-panel-title">Messages</h3>
+        <button type="button" class="panel-close-btn" id="btn-messages-close" aria-label="Close messages">
+            <svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+    </div>
+    <div class="panel-body">
+        {% if layout_message_contacts %}
+            {% for c in layout_message_contacts %}
+            <a href="{{ url_for('messages_page', with=c.id) }}" class="panel-contact">
+                <div class="panel-contact-avatar">{{ c.name[0]|upper if c.name else '?' }}</div>
+                <div class="panel-contact-info">
+                    <div class="panel-contact-name">{{ c.name }}</div>
+                    <div class="panel-contact-role">{{ c.user_type }}</div>
+                </div>
+            </a>
+            {% endfor %}
+        {% else %}
+            <div class="panel-empty">No contacts yet. Book a service or accept a job request to start messaging.</div>
+        {% endif %}
+    </div>
+    <div class="panel-footer">
+        <a href="{{ url_for('messages_page') }}">Open full inbox</a>
+    </div>
+</aside>

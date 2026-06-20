@@ -73,6 +73,24 @@ class Command(BaseCommand):
         if w_created:
             self.stdout.write(self.style.SUCCESS('Created demo worker mike@example.com'))
 
+        admin_user, a_created = User.objects.update_or_create(
+            email='admin@protech.com',
+            defaults={
+                'username': 'admin@protech.com',
+                'first_name': 'Site',
+                'last_name': 'Admin',
+                'user_type': 'user',
+                'is_staff': True,
+                'is_superuser': True,
+            },
+        )
+        admin_user.set_password('password123')
+        admin_user.is_staff = True
+        admin_user.is_superuser = True
+        admin_user.save()
+        if a_created:
+            self.stdout.write(self.style.SUCCESS('Created Django admin admin@protech.com'))
+
         worker_obj = Worker.objects.get(user=worker_user)
         from users.models import WorkerAvailability
         for day in range(0, 5):
@@ -88,4 +106,9 @@ class Command(BaseCommand):
             if user.email == 'john@example.com':
                 deposit_demo_funds(user, 200)
 
-        self.stdout.write(self.style.SUCCESS('Demo data ready. Login: john@example.com / password123'))
+        self.stdout.write(self.style.SUCCESS(
+            'Demo data ready.\n'
+            '  App login: john@example.com / password123 (client)\n'
+            '  App login: mike@example.com / password123 (worker)\n'
+            '  Django admin: admin@protech.com / password123 at /admin/'
+        ))

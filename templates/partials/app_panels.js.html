@@ -1,0 +1,89 @@
+<script>
+(function () {
+    var notifBtn = document.getElementById('btn-notifications');
+    var notifPanel = document.getElementById('notifications-panel');
+    var msgBtn = document.getElementById('btn-messages');
+    var msgPanel = document.getElementById('messages-panel');
+    var msgOverlay = document.getElementById('messages-overlay');
+    var msgClose = document.getElementById('btn-messages-close');
+
+    if (!notifBtn || !notifPanel || !msgBtn || !msgPanel || !msgOverlay) {
+        return;
+    }
+
+    function closeNotifications() {
+        notifPanel.classList.remove('is-open');
+        notifPanel.hidden = true;
+        notifBtn.setAttribute('aria-expanded', 'false');
+    }
+
+    function openNotifications() {
+        closeMessages();
+        notifPanel.hidden = false;
+        requestAnimationFrame(function () {
+            notifPanel.classList.add('is-open');
+        });
+        notifBtn.setAttribute('aria-expanded', 'true');
+    }
+
+    function closeMessages() {
+        msgPanel.classList.remove('is-open');
+        msgOverlay.classList.remove('is-open');
+        msgPanel.hidden = true;
+        msgOverlay.hidden = true;
+        msgBtn.setAttribute('aria-expanded', 'false');
+        document.body.classList.remove('panel-open');
+    }
+
+    function openMessages() {
+        closeNotifications();
+        msgPanel.hidden = false;
+        msgOverlay.hidden = false;
+        document.body.classList.add('panel-open');
+        requestAnimationFrame(function () {
+            msgPanel.classList.add('is-open');
+            msgOverlay.classList.add('is-open');
+        });
+        msgBtn.setAttribute('aria-expanded', 'true');
+    }
+
+    notifBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        if (notifPanel.classList.contains('is-open')) {
+            closeNotifications();
+        } else {
+            openNotifications();
+        }
+    });
+
+    msgBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        if (msgPanel.classList.contains('is-open')) {
+            closeMessages();
+        } else {
+            openMessages();
+        }
+    });
+
+    if (msgClose) {
+        msgClose.addEventListener('click', closeMessages);
+    }
+
+    msgOverlay.addEventListener('click', closeMessages);
+
+    document.addEventListener('click', function (e) {
+        if (notifPanel.classList.contains('is-open') &&
+            !notifPanel.contains(e.target) &&
+            !notifBtn.contains(e.target)) {
+            closeNotifications();
+        }
+    });
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+            closeNotifications();
+            closeMessages();
+        }
+    });
+})();
+</script>

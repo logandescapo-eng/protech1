@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page_title|default('ProTech') }} - ProTech</title>
+    {% include 'partials/app_shell_styles.html' %}
+</head>
+<body>
+    {% include 'partials/app_topnav.html' %}
+    <div class="dashboard-container">
+        {% include 'partials/app_sidebar.html' %}
+        <main class="main-content">

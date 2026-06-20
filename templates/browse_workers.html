@@ -1,19 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Browse Workers - ProTech</title>
-    {% include 'partials/app_page_styles.html' %}
-</head>
-<body>
-    <div class="wrap">
-        <div class="nav">
-            <a href="{{ url_for('user_dashboard') }}">← Dashboard</a>
-            <a href="{{ url_for('my_bookings') }}">My Bookings</a>
-        </div>
-
-        <h1>Find a Professional</h1>
+{% set page_title = 'Find a Professional' %}
+{% include 'partials/app_layout_open.html' %}
+<h1>Find a Professional</h1>
         <p class="sub">Browse skilled workers and book a service</p>
 
         {% with messages = get_flashed_messages(with_categories=true) %}
@@ -78,6 +65,4 @@
                 <p style="margin-top:1rem;"><a href="{{ url_for('browse_workers') }}" class="btn btn-outline">Clear filters</a></p>
             </div>
         {% endif %}
-    </div>
-</body>
-</html>
+{% include 'partials/app_layout_close.html' %}

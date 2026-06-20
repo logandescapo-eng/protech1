@@ -1,15 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Favorites - ProTech</title>
-    {% include 'partials/app_page_styles.html' %}
-</head>
-<body>
-    <div class="wrap">
-        {% include 'partials/subpage_nav.html' %}
-        <h1>Favorites</h1>
+{% set page_title = page_title|default('ProTech') %}
+{% include 'partials/app_layout_open.html' %}
+<h1>Favorites</h1>
         <p class="sub">Professionals you've saved</p>
 
         {% with messages = get_flashed_messages(with_categories=true) %}
@@ -42,6 +33,4 @@
             <p style="margin-top:1rem;"><a href="{{ url_for('browse_workers') }}" class="btn btn-primary">Find professionals</a></p>
         </div>
         {% endif %}
-    </div>
-</body>
-</html>
+{% include 'partials/app_layout_close.html' %}

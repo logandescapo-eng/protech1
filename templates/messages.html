@@ -1,15 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Messages - ProTech</title>
-    {% include 'partials/app_page_styles.html' %}
-</head>
-<body>
-    <div class="wrap" style="max-width:1000px;">
-        {% include 'partials/subpage_nav.html' %}
-        <h1>Messages</h1>
+{% set page_title = page_title|default('ProTech') %}
+{% include 'partials/app_layout_open.html' %}
+<h1>Messages</h1>
         <p class="sub">Chat with clients or professionals from your bookings</p>
 
         {% with messages = get_flashed_messages(with_categories=true) %}
@@ -65,6 +56,4 @@
                 {% endif %}
             </div>
         </div>
-    </div>
-</body>
-</html>
+{% include 'partials/app_layout_close.html' %}

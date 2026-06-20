@@ -502,7 +502,7 @@ def escrow_flow_diagram(doc):
     styled_table(doc, ["Step", "Stage", "Description"], steps, col_widths=[0.55, 1.6, 3.85])
 
 
-def business_model_section(doc):
+def business_model_section(doc, charts):
     """Detailed monetisation: transaction commission + worker subscriptions."""
     style_heading(doc, "1.4 Business Model and Monetisation Strategy", 2)
 
@@ -667,6 +667,72 @@ def business_model_section(doc):
         r3 = p2.add_run(desc)
         r3.font.size = Pt(9)
         r3.font.color.rgb = RGBColor(0xF1, 0xF5, 0xF9)
+
+    be = charts["break_even_metrics"]
+    body(doc,
+         "Break-even analysis is presented at two levels: worker subscription economics (when a paid plan "
+         "pays for itself through commission savings) and platform operating economics (when total monthly "
+         "revenue covers fixed and variable operating costs). Both use transparent formulas that can be "
+         "validated in a spreadsheet or extended in production financial reporting.")
+
+    style_heading(doc, "1.4.3.1 Worker Subscription Break-Even", 4)
+    body(doc,
+         "For a subscribed worker, monthly commission savings equal the number of completed standard-band "
+         "jobs multiplied by the gross job value multiplied by the commission discount percentage. The "
+         "subscription breaks even when savings equal the plan price:")
+    body(doc,
+         "Jobs to break even = Monthly subscription ÷ (Average job value × Commission discount %).")
+    pro = be["worker_plans"]["professional"]
+    prem = be["worker_plans"]["premium"]
+    styled_table(doc, ["Plan", "Monthly fee", "Commission discount", "Avg job $150", "Avg job $200", "Avg job $250"], [
+        ("Professional", f"${pro['subscription']}/mo", f"{pro['discount_pct']:.0f}%",
+         f"{pro['scenarios'][0]['jobs_to_breakeven']:.0f} jobs",
+         f"{pro['scenarios'][1]['jobs_to_breakeven']:.0f} jobs",
+         f"{pro['scenarios'][2]['jobs_to_breakeven']:.0f} jobs"),
+        ("Premium", f"${prem['subscription']}/mo", f"{prem['discount_pct']:.0f}%",
+         f"{prem['scenarios'][0]['jobs_to_breakeven']:.0f} jobs",
+         f"{prem['scenarios'][1]['jobs_to_breakeven']:.0f} jobs",
+         f"{prem['scenarios'][2]['jobs_to_breakeven']:.0f} jobs"),
+    ], col_widths=[1.1, 0.95, 1.15, 0.95, 0.95, 0.95])
+    body(doc,
+         f"At the illustrative two-hundred-dollar average job used earlier, Professional breaks even at "
+         f"{pro['scenarios'][1]['jobs_to_breakeven']:.0f} completed jobs per month and Premium at "
+         f"{prem['scenarios'][1]['jobs_to_breakeven']:.0f} jobs—before counting any uplift from higher "
+         "search ranking or featured placement. Figure 6 visualises these thresholds across job sizes.")
+    add_chart(doc, charts["break_even_worker"],
+              "Figure 6 — Worker subscription break-even: completed jobs per month required to offset plan cost via commission savings.")
+
+    style_heading(doc, "1.4.3.2 Platform Operating Break-Even", 4)
+    body(doc,
+         "From the operator's perspective, monthly profit equals total MRR minus operating costs. Fixed costs "
+         f"follow a bootstrap phased schedule ({be['fixed_cost_phases']}) reflecting founder-led launch "
+         "before full-scale hiring. Variable costs are estimated at "
+         f"{int(be['variable_cost_rate'] * 100)}% of gross merchandise volume (GMV) to cover payment rails, "
+         "per-job support, and dispute handling. Total monthly cost therefore equals:")
+    body(doc,
+         "Total cost = Fixed monthly costs + (Variable rate × Monthly GMV).")
+    body(doc,
+         "Platform break-even occurs in the first month where Total MRR ≥ Total cost. Applying the "
+         "twenty-four-month projection model from Section 1.4.6 yields the following illustrative result:")
+    be_month = be["break_even_month"]
+    be_label = f"Month {be_month}" if be_month else "Not reached within 24 months"
+    styled_table(doc, ["Metric", "Formula / assumption", "Illustrative result"], [
+        ("Fixed monthly costs", "Phased: lean launch → growth → scale",
+         be["fixed_cost_phases"]),
+        ("Variable cost rate", "Payment processing + support allocation on GMV",
+         f"{int(be['variable_cost_rate'] * 100)}% of GMV"),
+        ("Break-even month", "First month where MRR ≥ total operating cost", be_label),
+        ("Month 24 MRR", "Commission + subscriptions (projected)", f"${be['month_24_revenue']:,.0f}"),
+        ("Month 24 operating cost", "Fixed + variable on projected GMV", f"${be['month_24_cost']:,.0f}"),
+        ("Month 24 net margin", "MRR − operating cost", f"${be['month_24_margin']:,.0f}"),
+    ], col_widths=[1.45, 2.35, 1.7])
+    body(doc,
+         "Figure 7 plots projected MRR against total operating cost across twenty-four months. The "
+         "intersection identifies the break-even point; shaded regions indicate cumulative operating deficit "
+         "(before break-even) and surplus (after break-even). This complements the revenue growth charts "
+         "in Section 1.4.6 by answering when the marketplace becomes self-sustaining under stated assumptions.")
+    add_chart(doc, charts["break_even"],
+              "Figure 7 — Platform break-even: monthly revenue (MRR) versus total operating cost (fixed + variable).")
 
     style_heading(doc, "1.4.4 Alignment with the ProTech Implementation", 3)
     body(doc,
@@ -845,7 +911,8 @@ def executive_summary_section(doc):
          "docker compose up --build to access a fully interactive demo at http://localhost.")
     body(doc,
          "From a business perspective, ProTech proposes a hybrid monetisation model combining transaction "
-         "commissions and tiered worker subscriptions, supported by illustrative twenty-four-month growth "
+         "commissions and tiered worker subscriptions, with explicit break-even analysis for both worker plans "
+         "and platform operating costs, supported by illustrative twenty-four-month growth "
          "projections. The commission component is implemented in code; subscription tiers are specified for "
          "future production rollout. This report documents system design, implementation, testing, deployment, "
          "limitations, and the academic literature that informed key decisions.")
@@ -1046,6 +1113,8 @@ def build_report():
         "        1.4.1 Transaction Commission Model",
         "        1.4.2 Worker Subscription Model",
         "        1.4.3 Value Exchange and Break-Even Analysis",
+        "            1.4.3.1 Worker Subscription Break-Even",
+        "            1.4.3.2 Platform Operating Break-Even",
         "        1.4.4 Alignment with the ProTech Implementation",
         "        1.4.5 Go-to-Market and Growth Considerations",
         "        1.4.6 Growth Projections: Traffic and Economics",
@@ -1133,7 +1202,7 @@ def build_report():
          "into one Django application behind Nginx in Docker. That single integrated platform is the main "
          "contribution of the project, both as a business idea and as a technical build.")
 
-    business_model_section(doc)
+    business_model_section(doc, charts)
     growth_projections_section(doc, charts)
 
     doc.add_page_break()

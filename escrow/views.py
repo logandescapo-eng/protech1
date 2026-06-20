@@ -32,6 +32,7 @@ def wallet_page(request):
         'transactions': transactions,
         'vault': vault,
         'platform_fee_percent': settings.ESCROW_PLATFORM_FEE_PERCENT,
+        'page_title': 'Wallet & Escrow',
     })
 
 
@@ -67,4 +68,5 @@ def escrow_pay(request, booking_id):
         'booking': booking,
         'wallet': wallet,
         'platform_fee_percent': settings.ESCROW_PLATFORM_FEE_PERCENT,
+        'page_title': 'Fund Escrow',
     })

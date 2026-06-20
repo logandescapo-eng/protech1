@@ -383,7 +383,7 @@ def build_presentation():
     charts = generate_all_charts()
     diagrams = generate_all_diagrams()
 
-    MAIN_TOTAL = 28  # slides in the main defence deck (excludes hidden backup)
+    MAIN_TOTAL = 31  # slides in the main defence deck (excludes hidden backup)
 
     global _slide_num
     _slide_num = 0
@@ -457,6 +457,38 @@ def build_presentation():
                      ],
                      MAIN_TOTAL,
                      left_title="Per transaction", right_title="Monthly plans")
+
+    be = charts["break_even_metrics"]
+    be_month = be["break_even_month"]
+    be_label = f"Month {be_month}" if be_month else "Beyond month 24"
+    pro = be["worker_plans"]["professional"]
+    prem = be["worker_plans"]["premium"]
+    two_column_slide(prs, "Break-Even Analysis",
+                     [
+                         "Worker plans (commission savings):",
+                         "Jobs = Subscription ÷ (Avg job × Discount %)",
+                         f"• Professional ($29): {pro['scenarios'][1]['jobs_to_breakeven']:.0f} jobs/mo @ $200",
+                         f"• Premium ($59): {prem['scenarios'][1]['jobs_to_breakeven']:.0f} jobs/mo @ $200",
+                         "Before ranking / featured-placement uplift.",
+                     ],
+                     [
+                         "Platform operating break-even:",
+                         f"• Fixed costs: {be['fixed_cost_phases']}",
+                         f"• Variable: {int(be['variable_cost_rate'] * 100)}% of GMV",
+                         f"• Break-even: {be_label} (illustrative)",
+                         f"• Month 24 margin: ${be['month_24_margin']:,.0f}",
+                     ],
+                     MAIN_TOTAL,
+                     left_title="Per worker", right_title="Platform operator",
+                     notes="Walk through formulas. Charts on next slides show worker job thresholds and platform crossover.")
+
+    chart_slide(prs, "Platform Break-Even", charts["break_even"],
+                f"Revenue vs operating cost — break-even at {be_label} (illustrative)", MAIN_TOTAL,
+                notes="Shaded red = deficit, green = surplus. Dotted line = phased fixed-cost baseline.")
+
+    chart_slide(prs, "Worker Subscription Break-Even", charts["break_even_worker"],
+                "Jobs per month to offset plan cost via commission savings only", MAIN_TOTAL,
+                notes="At $200 avg job: Pro ≈15 jobs, Premium ≈15 jobs. Featured placement adds upside.")
 
     chart_slide(prs, "Traffic Growth Projection", charts["traffic"],
                 "Month 24: ~9,500 visitors/mo (illustrative)", MAIN_TOTAL)

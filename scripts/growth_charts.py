@@ -189,15 +189,197 @@ def chart_revenue_mix_evolution(data):
     return path
 
 
+# Illustrative platform operating assumptions (city-level launch, USD/month)
+VARIABLE_COST_RATE = 0.02  # payment-processor and fulfilment share of GMV
+
+
+def _fixed_cost_for_month(month_index):
+    """Bootstrap operating scenario: lean fixed costs through month 24."""
+    m = month_index + 1
+    if m <= 6:
+        return 3_200
+    if m <= 12:
+        return 3_800
+    return 4_500
+
+
+def _extend_series_for_breakeven(data, extra_months=12):
+    """Extend MRR and GMV with tapering growth to locate platform break-even."""
+    mrr = list(data["total_mrr"])
+    gmv = list(data["gmv"])
+    tail_rates = [0.045, 0.042, 0.040, 0.038, 0.036, 0.034,
+                  0.032, 0.030, 0.028, 0.026, 0.024, 0.022][:extra_months]
+    for rate in tail_rates:
+        mrr.append(mrr[-1] * (1 + rate))
+        gmv.append(gmv[-1] * (1 + rate * 1.08))
+    return mrr, gmv
+
+
+def compute_break_even(data):
+    """Platform and worker subscription break-even metrics from projections."""
+    extended_mrr, extended_gmv = _extend_series_for_breakeven(data)
+    horizon = len(extended_mrr)
+
+    months = []
+    revenues = []
+    fixed_costs = []
+    variable_costs = []
+    total_costs = []
+    net_margins = []
+    break_even_month = None
+
+    for i in range(horizon):
+        m = i + 1
+        rev = extended_mrr[i]
+        fixed = _fixed_cost_for_month(min(i, 23))
+        var = extended_gmv[i] * VARIABLE_COST_RATE
+        total = fixed + var
+        months.append(m)
+        revenues.append(rev)
+        fixed_costs.append(fixed)
+        variable_costs.append(var)
+        total_costs.append(total)
+        net_margins.append(rev - total)
+        if break_even_month is None and rev >= total:
+            break_even_month = m
+
+    def _worker_plan_breakeven(subscription, discount_pct, avg_job_values):
+        rows = []
+        for avg in avg_job_values:
+            savings_per_job = avg * (discount_pct / 100)
+            jobs = subscription / savings_per_job if savings_per_job else float("inf")
+            rows.append({
+                "avg_job": avg,
+                "savings_per_job": savings_per_job,
+                "jobs_to_breakeven": jobs,
+            })
+        return rows
+
+    worker_plans = {
+        "professional": {
+            "name": "Professional",
+            "subscription": 29,
+            "discount_pct": 1.0,
+            "scenarios": _worker_plan_breakeven(29, 1.0, [150, 200, 250]),
+        },
+        "premium": {
+            "name": "Premium",
+            "subscription": 59,
+            "discount_pct": 2.0,
+            "scenarios": _worker_plan_breakeven(59, 2.0, [150, 200, 250]),
+        },
+    }
+
+    return {
+        "months": months,
+        "revenues": revenues,
+        "fixed_costs": fixed_costs,
+        "variable_costs": variable_costs,
+        "total_costs": total_costs,
+        "net_margins": net_margins,
+        "break_even_month": break_even_month,
+        "fixed_cost_phases": "Bootstrap scenario — Months 1–6: $3,200 · 7–12: $3,800 · 13–24: $4,500",
+        "variable_cost_rate": VARIABLE_COST_RATE,
+        "worker_plans": worker_plans,
+        "month_24_revenue": data["total_mrr"][23],
+        "month_24_cost": total_costs[23],
+        "month_24_margin": net_margins[23],
+        "chart_horizon": min(horizon, 28),
+    }
+
+
+def chart_break_even(data, be_metrics):
+    """Platform revenue vs operating costs with break-even month highlighted."""
+    fig, ax = plt.subplots(figsize=(8.5, 4.8), dpi=150)
+    horizon = be_metrics.get("chart_horizon", 24)
+    months = np.array(be_metrics["months"][:horizon])
+    rev = np.array(be_metrics["revenues"][:horizon])
+    total_cost = np.array(be_metrics["total_costs"][:horizon])
+
+    ax.fill_between(months, total_cost, rev, where=(rev >= total_cost),
+                    color=TEAL, alpha=0.2, label="Operating surplus")
+    ax.fill_between(months, 0, total_cost, where=(rev < total_cost),
+                    color="#FCA5A5", alpha=0.15, label="Operating deficit")
+    ax.plot(months, rev, color=BLUE, linewidth=2.8, marker="o", markersize=4, label="Total MRR (revenue)")
+    ax.plot(months, total_cost, color=AMBER, linewidth=2.5, linestyle="--",
+            marker="s", markersize=3, label="Total operating cost")
+    ax.plot(months, be_metrics["fixed_costs"][:horizon], color=SLATE, linewidth=1.2, linestyle=":",
+            alpha=0.85, label="Fixed costs (phased)")
+    if horizon > 24:
+        ax.axvline(24, color=SLATE, linewidth=1, linestyle=":", alpha=0.5)
+        ax.text(24.2, rev.max() * 0.08, "Core 24-mo\nprojection", fontsize=7, color=SLATE)
+
+    be_m = be_metrics["break_even_month"]
+    if be_m:
+        ax.axvline(be_m, color=INDIGO, linewidth=2, linestyle="-", alpha=0.75)
+        ax.annotate(
+            f"Break-even\nMonth {be_m}",
+            xy=(be_m, rev[be_m - 1]),
+            xytext=(be_m + 2.5, rev[be_m - 1] * 0.72),
+            fontsize=9,
+            fontweight="bold",
+            color=INDIGO,
+            arrowprops=dict(arrowstyle="->", color=INDIGO, lw=1.2),
+        )
+
+    _style_axes(ax, "Platform Break-Even Analysis", "USD ($)", "Post-launch month")
+    ax.legend(loc="upper left", fontsize=8, framealpha=0.92)
+    ax.yaxis.set_major_formatter(mticker.FuncFormatter(
+        lambda x, _: f"${int(x/1000)}k" if x >= 1000 else f"${int(x)}"
+    ))
+    note = (
+        f"Bootstrap scenario: phased fixed costs ($3.2k → $3.8k → $4.5k/mo) + "
+        f"{int(VARIABLE_COST_RATE * 100)}% of GMV variable. Months 25+ extrapolated with tapering growth."
+    )
+    fig.text(0.12, 0.02, note, fontsize=7.5, color=SLATE)
+    fig.tight_layout(rect=[0, 0.05, 1, 1])
+    path = CHART_DIR / "break_even_platform.png"
+    fig.savefig(path, facecolor="white", bbox_inches="tight")
+    plt.close(fig)
+    return path
+
+
+def chart_worker_breakeven(be_metrics):
+    """Jobs per month required for worker plans to break even on commission savings."""
+    fig, ax = plt.subplots(figsize=(8.5, 4.2), dpi=150)
+    avgs = [150, 200, 250]
+    x = np.arange(len(avgs))
+    width = 0.35
+    pro_jobs = [be_metrics["worker_plans"]["professional"]["scenarios"][i]["jobs_to_breakeven"]
+                for i in range(3)]
+    prem_jobs = [be_metrics["worker_plans"]["premium"]["scenarios"][i]["jobs_to_breakeven"]
+                 for i in range(3)]
+    ax.bar(x - width / 2, pro_jobs, width, label="Professional ($29/mo, −1%)",
+           color=BLUE, alpha=0.88)
+    ax.bar(x + width / 2, prem_jobs, width, label="Premium ($59/mo, −2%)",
+           color=INDIGO, alpha=0.88)
+    ax.set_xticks(x)
+    ax.set_xticklabels([f"${a} avg job" for a in avgs], fontsize=9)
+    _style_axes(ax, "Worker Subscription Break-Even (Jobs per Month)", "Completed jobs / month", "")
+    ax.legend(loc="upper right", fontsize=9)
+    ax.yaxis.set_major_formatter(mticker.FuncFormatter(lambda x, _: f"{int(x)}" if x == int(x) else f"{x:.1f}"))
+    for bars in ax.containers:
+        ax.bar_label(bars, fmt="%.0f", fontsize=8, padding=2)
+    fig.tight_layout()
+    path = CHART_DIR / "break_even_worker.png"
+    fig.savefig(path, facecolor="white", bbox_inches="tight")
+    plt.close(fig)
+    return path
+
+
 def generate_all_charts():
     CHART_DIR.mkdir(parents=True, exist_ok=True)
     data = build_projections()
+    be_metrics = compute_break_even(data)
     return {
         "traffic": chart_traffic(data),
         "users": chart_users(data),
         "revenue": chart_revenue(data),
         "bookings": chart_bookings_gmv(data),
         "mix": chart_revenue_mix_evolution(data),
+        "break_even": chart_break_even(data, be_metrics),
+        "break_even_worker": chart_worker_breakeven(be_metrics),
+        "break_even_metrics": be_metrics,
         "data": data,
     }
 

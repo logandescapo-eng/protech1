@@ -1,67 +1,20 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Bookings - ProTech</title>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: system-ui, -apple-system, sans-serif; background: #f9fafb; color: #111827; line-height: 1.5; }
-        .wrap { max-width: 800px; margin: 0 auto; padding: 2rem 1rem; }
-        .nav { margin-bottom: 1.5rem; }
-        .nav a { color: #2563eb; text-decoration: none; font-weight: 500; }
-        .nav a:hover { text-decoration: underline; }
-        h1 { font-size: 1.75rem; margin-bottom: 0.25rem; }
-        .sub { color: #6b7280; margin-bottom: 1.5rem; }
-        .flash { padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 1rem; }
-        .flash.success { background: #d1fae5; color: #065f46; }
-        .flash.error { background: #fee2e2; color: #991b1b; }
-        .booking { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; }
-        .booking h3 { font-size: 1.1rem; margin-bottom: 0.25rem; }
-        .meta { color: #6b7280; font-size: 0.9rem; margin-bottom: 0.75rem; }
-        .status { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; text-transform: capitalize; }
-        .status.pending { background: #fef3c7; color: #92400e; }
-        .status.confirmed, .status.in_progress { background: #dbeafe; color: #1e40af; }
-        .status.completed { background: #d1fae5; color: #065f46; }
-        .status.cancelled { background: #f3f4f6; color: #4b5563; }
-        .actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.75rem; }
-        .btn { padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.875rem; font-weight: 500; cursor: pointer; border: none; text-decoration: none; display: inline-block; }
-        .btn-primary { background: #2563eb; color: #fff; }
-        .btn-success { background: #10b981; color: #fff; }
-        .btn-danger { background: #ef4444; color: #fff; }
-        .btn-outline { background: #fff; color: #374151; border: 1px solid #d1d5db; }
-        .empty { text-align: center; padding: 3rem 1rem; color: #6b7280; }
-        .pay-status { display: inline-block; margin-left: 0.5rem; padding: 0.2rem 0.5rem; border-radius: 6px; font-size: 0.7rem; background: #e0e7ff; color: #3730a3; }
-        .pay-status.escrow_held { background: #fef3c7; color: #92400e; }
-        .pay-status.released { background: #d1fae5; color: #065f46; }
-        .wallet-bar { background: #eff6ff; border: 1px solid #bfdbfe; padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 1rem; font-size: 0.9rem; }
-    </style>
-</head>
-<body>
-    <div class="wrap">
-        <div class="nav">
-            {% if user_type == 'worker' %}
-            <a href="{{ url_for('worker_dashboard') }}">← Back to Dashboard</a>
-            {% else %}
-            <a href="{{ url_for('user_dashboard') }}">← Back to Dashboard</a>
-            {% endif %}
-            <a href="{{ url_for('wallet_page') }}">Wallet</a>
-        </div>
+{% set page_title = page_title|default('My Bookings') %}
+{% include 'partials/app_layout_open.html' %}
 
-        {% if user_type != 'worker' and wallet %}
-        <div class="wallet-bar">
-            Wallet balance: <strong>${{ "%.2f"|format(wallet.available_balance) }}</strong> ·
-            <a href="{{ url_for('wallet_page') }}">Add funds / history</a>
-        </div>
-        {% elif user_type == 'worker' and wallet %}
-        <div class="wallet-bar">
-            Wallet (payouts): <strong>${{ "%.2f"|format(wallet.available_balance) }}</strong> ·
-            <a href="{{ url_for('wallet_page') }}">View transactions</a>
-        </div>
-        {% endif %}
+{% if user_type != 'worker' and wallet %}
+<div class="wallet-bar">
+    Wallet balance: <strong>${{ "%.2f"|format(wallet.available_balance) }}</strong> ·
+    <a href="{{ url_for('wallet_page') }}">Add funds / history</a>
+</div>
+{% elif user_type == 'worker' and wallet %}
+<div class="wallet-bar">
+    Wallet (payouts): <strong>${{ "%.2f"|format(wallet.available_balance) }}</strong> ·
+    <a href="{{ url_for('wallet_page') }}">View transactions</a>
+</div>
+{% endif %}
 
-        <h1>My Bookings</h1>
-        <p class="sub">{% if user_type == 'worker' %}Manage job requests and your schedule{% else %}Track and manage your service bookings{% endif %}</p>
+<h1>{{ page_title }}</h1>
+<p class="sub">{% if user_type == 'worker' %}{% if list_view == 'pending' %}Respond to new client requests{% elif list_view == 'schedule' %}Upcoming confirmed jobs{% else %}Manage job requests and your schedule{% endif %}{% else %}Track and manage your service bookings{% endif %}</p>
 
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
@@ -144,6 +97,4 @@
                 {% endif %}
             </div>
         {% endif %}
-    </div>
-</body>
-</html>
+{% include 'partials/app_layout_close.html' %}
